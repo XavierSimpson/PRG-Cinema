@@ -6,6 +6,8 @@ class Cinema:
     def __init__(self):
 
         # Load an image using Pillow
+
+        # Movie Posters 
         image_path = r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg"
         image = Image.open(image_path)
 
@@ -33,7 +35,8 @@ class Cinema:
         photo2 = ImageTk.PhotoImage(resized_image2)
         photo3 = ImageTk.PhotoImage(resized_image3)
 
-        self.cinema_frame = Frame(bg = "#14213D")
+        # Cinema Frame 
+        self.cinema_frame = Frame(bg = "#19294D")
         self.cinema_frame.grid()
         
         self.cinema_heading = Label(self.cinema_frame,
@@ -47,22 +50,45 @@ class Cinema:
         self.cinema_showing = Label(self.cinema_frame,
                                        text="Now showing",
                                        font=("Poppins", "11", "bold"),
-                                       fg="#FFFFFF", bg ="#14213D",
-                                       wrap=250, width=40,
-                                       justify="left")
+                                       fg="#FFFFFF", bg ="#14213D")
         
-        self.cinema_showing.grid(row=1)   
+        self.cinema_showing.grid(row=1, columnspan=4, sticky="WE")   
 
 
         @staticmethod
         def on_button_click():
             print("hello!")
         
+
+        # Frame for Movies all together 
         self.movie_frame = Frame(self.cinema_frame, bg = "#14213D")
         self.movie_frame.grid(row=2) 
 
+        # Frame for Side Tab
+        self.side_tab = Frame(self.movie_frame, bg="#1E325C", width=20, height=30)
+        self.side_tab.grid(row=0, column=0, padx=5, pady=5)
+
+        self.side_tab_label = Label(self.side_tab, text="Movies", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D", justify="left")
+        self.side_tab_label.grid(row=0, pady=5)
+
+        self.side_tab_label_1 = Label(self.side_tab, text="Session Times", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D", justify="left")
+        self.side_tab_label_1.grid(row=1, pady=5)
+
+        self.side_tab_label_2 = Label(self.side_tab, text="Cinemas", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D", justify="left")
+        self.side_tab_label_2.grid(row=2, pady=5)
+
+        self.side_tab_label_3 = Label(self.side_tab, text="Food & Snacks", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D", justify="left")
+        self.side_tab_label_3.grid(row=3, pady=5)
+
+
+
+        # Frame for movie and name
         self.movie_1_frame = Frame(self.movie_frame, bg = "#14213D") 
-        self.movie_1_frame.grid(row=0, column=0, pady=5)  
+        self.movie_1_frame.grid(row=0, column=1, pady=5)  
         
         self.movie_1_button = Button(self.movie_1_frame, image=photo, command=on_button_click, bd=0, relief=FLAT)
         self.movie_1_button.image = photo
@@ -73,7 +99,7 @@ class Cinema:
         self.movie_1_label.grid(row=1)
 
         self.movie_2_frame = Frame(self.movie_frame, bg = "#14213D") 
-        self.movie_2_frame.grid(row=0, column=1, pady=5) 
+        self.movie_2_frame.grid(row=0, column=2, pady=5) 
         
         self.movie_2_button = Button(self.movie_2_frame, image=photo1, command=on_button_click, bd=0, relief=FLAT)
         self.movie_2_button.image = photo1
@@ -84,7 +110,7 @@ class Cinema:
         self.movie_2_label.grid(row=1)
 
         self.movie_3_frame = Frame(self.movie_frame, bg="#14213D")
-        self.movie_3_frame.grid(row=0, column=2, pady=5) 
+        self.movie_3_frame.grid(row=0, column=3, pady=5) 
         
         self.movie_3_button = Button(self.movie_3_frame, image=photo2, command=on_button_click, bd=0, relief=FLAT)
         self.movie_3_button.image = photo2
@@ -95,7 +121,7 @@ class Cinema:
         self.movie_3_label.grid(row=1)
 
         self.movie_4_frame = Frame(self.movie_frame, bg="#14213D")
-        self.movie_4_frame.grid(row=0, column=3, pady=5)
+        self.movie_4_frame.grid(row=0, column=4, pady=5)
 
         self.movie_4_button = Button(self.movie_4_frame, image=photo3, command=on_button_click, bd=0, relief=FLAT)
         self.movie_4_button.image = photo3
