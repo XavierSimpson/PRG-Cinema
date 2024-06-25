@@ -68,10 +68,15 @@ class Cinema:
         movie_titles = ["Movie One", "Movie Two", "Movie Three", "Movie Four"]
         for i, (photo, title) in enumerate(zip(self.photos, movie_titles)):
             movie_frame = Frame(self.movie_frame, bg="#14213D")
-            movie_frame.grid(row=0, column=i, pady=5)
+            movie_frame.grid(row=0, column=i+1, pady=5)
+
+            def create_movie_button_callback(index):
+                def callback():
+                    self.on_movie_button_click(index)
+                return callback
 
             movie_button = Button(
-                movie_frame, image=photo, command=Cinema.on_button_click, bd=0, relief=FLAT
+                movie_frame, image=photo, command=create_movie_button_callback(i), bd=0, relief=FLAT
             )
             movie_button.image = photo
             movie_button.grid(row=0, column=0, padx=5, pady=5)
@@ -82,6 +87,29 @@ class Cinema:
             )
             movie_label.grid(row=1)
 
+    def on_movie_button_click(self, index):
+        # Define separate functions for each movie button action
+        if index == 0:
+            self.show_movie_one()
+        elif index == 1:
+            self.show_movie_two()
+        elif index == 2:
+            self.show_movie_three()
+        elif index == 3:
+            self.show_movie_four()
+
+    def show_movie_one(self):
+        print("Showing details for Movie One")
+
+    def show_movie_two(self):
+        print("Showing details for Movie Two")
+
+    def show_movie_three(self):
+        print("Showing details for Movie Three")
+
+    def show_movie_four(self):
+        print("Showing details for Movie Four")
+
 
 # main routine    
 if __name__ == "__main__":
@@ -89,3 +117,4 @@ if __name__ == "__main__":
     root.title("Cinema")
     Cinema(root)
     root.mainloop()
+
