@@ -56,26 +56,54 @@ class Cinema:
 
         @staticmethod
         def on_button_click():
-            print("You clicked on ME")
+            print("hello!")
         
         self.movie_frame = Frame(self.cinema_frame, bg = "#14213D")
-        self.movie_frame.grid(row=2)  
+        self.movie_frame.grid(row=2) 
+
+        self.movie_1_frame = Frame(self.movie_frame, bg = "#14213D") 
+        self.movie_1_frame.grid(row=0, column=0, pady=5)  
         
-        self.movie_1_button = Button(self.movie_frame, image=photo, command=on_button_click, bd=0, relief=FLAT)
+        self.movie_1_button = Button(self.movie_1_frame, image=photo, command=on_button_click, bd=0, relief=FLAT)
         self.movie_1_button.image = photo
-        self.movie_1_button.grid(row=0, column=0, padx=5, pady=5)  
+        self.movie_1_button.grid(row=0, column=0, padx=5, pady=5) 
+
+        self.movie_1_label = Label(self.movie_1_frame, text="Movie One", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D") 
+        self.movie_1_label.grid(row=1)
+
+        self.movie_2_frame = Frame(self.movie_frame, bg = "#14213D") 
+        self.movie_2_frame.grid(row=0, column=1, pady=5) 
         
-        self.movie_2_button = Button(self.movie_frame, image=photo1, command=on_button_click, bd=0, relief=FLAT)
+        self.movie_2_button = Button(self.movie_2_frame, image=photo1, command=on_button_click, bd=0, relief=FLAT)
         self.movie_2_button.image = photo1
-        self.movie_2_button.grid(row=0, column=1, padx=5, pady=5)   
+        self.movie_2_button.grid(row=0, column=0, padx=5, pady=5)   
+
+        self.movie_2_label = Label(self.movie_2_frame, text="Movie Two", font=("Poppins", "11", "bold"),
+                                       fg="#FFFFFF", bg ="#14213D") 
+        self.movie_2_label.grid(row=1)
+
+        self.movie_3_frame = Frame(self.movie_frame, bg="#14213D")
+        self.movie_3_frame.grid(row=0, column=2, pady=5) 
         
-        self.movie_3_button = Button(self.movie_frame, image=photo2, command=on_button_click, bd=0, relief=FLAT)
+        self.movie_3_button = Button(self.movie_3_frame, image=photo2, command=on_button_click, bd=0, relief=FLAT)
         self.movie_3_button.image = photo2
-        self.movie_3_button.grid(row=0, column=2, padx=5, pady=5)   
-        
-        self.movie_4_button = Button(self.movie_frame, image=photo3, command=on_button_click, bd=0, relief=FLAT)
+        self.movie_3_button.grid(row=0, column=0, padx=5, pady=5)  
+
+        self.movie_3_label = Label(self.movie_3_frame, text="Movie Three", font=("Poppins", "11", "bold"),
+                              fg="#FFFFFF", bg ="#14213D")
+        self.movie_3_label.grid(row=1)
+
+        self.movie_4_frame = Frame(self.movie_frame, bg="#14213D")
+        self.movie_4_frame.grid(row=0, column=3, pady=5)
+
+        self.movie_4_button = Button(self.movie_4_frame, image=photo3, command=on_button_click, bd=0, relief=FLAT)
         self.movie_4_button.image = photo3
-        self.movie_4_button.grid(row=0, column=3, padx=5, pady=5)         
+        self.movie_4_button.grid(row=0, column=0, padx=5, pady=5)       
+
+        self.movie_4_label = Label(self.movie_4_frame, text="Movie Four", font=("Poppins", "11", "bold"),
+                              fg="#FFFFFF", bg ="#14213D")  
+        self.movie_4_label.grid(row=1)
 
         
 # main routine    
