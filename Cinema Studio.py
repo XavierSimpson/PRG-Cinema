@@ -18,7 +18,7 @@ class Cinema:
             r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
             r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg"
         ]
-        desired_size = (130, 193)
+        desired_size = (200, 293)
         self.photos = []
 
         for path in image_paths:
@@ -29,39 +29,38 @@ class Cinema:
 
         # Cinema Frame
         self.cinema_frame = Frame(parent, bg="#14213D")
-        self.cinema_frame.grid(column=1)
-
+        self.cinema_frame.grid(column=1, sticky="nsew")
 
         self.cinema_showing = Label(
-            self.cinema_frame, text="Now showing:", font=("Bahnschrift Light Condensed", "17"),
+            self.cinema_frame, text="Now showing:", font=("Bahnschrift Light Condensed", "20"),
             fg="#FFFFFF", bg="#14213D", anchor="w"
         )
         self.cinema_showing.grid(row=1, columnspan=4, sticky="WE", padx=5, pady=5)
 
         # Frame for Movies all together
         self.movie_frame = Frame(self.cinema_frame, bg="#14213D")
-        self.movie_frame.grid(row=2)
+        self.movie_frame.grid(row=2, sticky="nsew")
 
         # Frame for Side Tab
         self.side_tab = Frame(parent, bg="#19294D", width=10
                               )
         self.side_tab.grid(row=0, column=0, sticky="NS")
 
-        self.canvas = Canvas(self.side_tab, width=130, height=70, bg="#19294D", bd=0, highlightthickness=0)
+        self.canvas = Canvas(self.side_tab, width=200, height=80, bg="#19294D", bd=0, highlightthickness=0)
         self.canvas.grid(row=0, column=0)
 
-        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", "35"), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", "45"), fill="#FCA311", anchor="nw")
 
-        self.canvas.create_text(11, 40, text="Cinemas", font=("Bahnschrift Light Condensed", "17"), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", "17"), fill="#FCA311", anchor="nw")
 
 
         side_tab_labels = ["", "Movies", "Session Times", "Cinemas", "Food & Snacks"]
         for i, text in enumerate(side_tab_labels):
             label = Label(
-                self.side_tab, text=text, font=("Bahnschrift Light Condensed", "15"),
+                self.side_tab, text=text, font=("Bahnschrift Light Condensed", "17"),
                 fg="#FFFFFF", bg="#19294D", anchor="w"
             )
-            label.grid(row=i+1, padx=10, sticky="WE")
+            label.grid(row=i+1, padx=15, pady=7, sticky="WE")
         
         self.setup_movie_frames()
 
@@ -179,6 +178,28 @@ class Movie:
 if __name__ == "__main__":
     root = Tk()
     root.title("Cinema")
+    
+    desired_width = 1050
+    desired_height = 600
+
+     # Calculate the center of the screen
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width - desired_width) // 2
+    y = (screen_height - desired_height) // 2
+
+    # Adjust y position to account for taskbar (optional)
+    taskbar_height = 40
+    y = y - (taskbar_height // 2)
+
+    # Set the geometry to the desired size and centered position
+    root.geometry(f"{desired_width}x{desired_height}+{x}+{y}")
+
+
+
+    root.rowconfigure(0, weight=1)
+    root.columnconfigure(1, weight=1)
+
     Cinema(root)
     root.mainloop()
 
