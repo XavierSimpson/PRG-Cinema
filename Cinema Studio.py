@@ -31,17 +31,12 @@ class Cinema:
         self.cinema_frame = Frame(parent, bg="#14213D")
         self.cinema_frame.grid(column=1)
 
-        self.cinema_heading = Label(
-            self.cinema_frame, text="RIZZ Cinema", font=("Poppins", "18", "bold"),
-            fg="#FCA311", bg="#19294D", width=40, height=2
-        )
-        self.cinema_heading.grid(row=0)
 
         self.cinema_showing = Label(
-            self.cinema_frame, text="Now showing", font=("Poppins", "11", "bold"),
-            fg="#FFFFFF", bg="#14213D"
+            self.cinema_frame, text="Now showing:", font=("Bahnschrift Light Condensed", "17"),
+            fg="#FFFFFF", bg="#14213D", anchor="w"
         )
-        self.cinema_showing.grid(row=1, columnspan=4, sticky="WE")
+        self.cinema_showing.grid(row=1, columnspan=4, sticky="WE", padx=5, pady=5)
 
         # Frame for Movies all together
         self.movie_frame = Frame(self.cinema_frame, bg="#14213D")
@@ -52,24 +47,27 @@ class Cinema:
                               )
         self.side_tab.grid(row=0, column=0, sticky="NS")
 
-        self.side_tab_logo = Label(self.side_tab, text="R", font=("Poppins", "35", "bold"),
-                fg="#FCA311", bg="#19294D", justify="left"
-            )
-        self.side_tab_logo.grid(row= 0, pady=10)
+        self.canvas = Canvas(self.side_tab, width=130, height=70, bg="#19294D", bd=0, highlightthickness=0)
+        self.canvas.grid(row=0, column=0)
+
+        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", "35"), fill="#FCA311", anchor="nw")
+
+        self.canvas.create_text(11, 40, text="Cinemas", font=("Bahnschrift Light Condensed", "17"), fill="#FCA311", anchor="nw")
+
 
         side_tab_labels = ["", "Movies", "Session Times", "Cinemas", "Food & Snacks"]
         for i, text in enumerate(side_tab_labels):
             label = Label(
-                self.side_tab, text=text, font=("Poppins", "13"),
+                self.side_tab, text=text, font=("Bahnschrift Light Condensed", "15"),
                 fg="#FFFFFF", bg="#19294D", anchor="w"
             )
-            label.grid(row=i+1, pady=5, padx=10, sticky="WE")
+            label.grid(row=i+1, padx=10, sticky="WE")
         
         self.setup_movie_frames()
 
     def setup_movie_frames(self):
         # Frames and buttons for movies
-        movie_titles = ["Movie One", "Movie Two", "Movie Three", "Movie Four"]
+        movie_titles = ["King Kong", "Movie Two", "Movie Three", "Movie Four"]
         self.movie_buttons = []
         for i, (photo, title) in enumerate(zip(self.photos, movie_titles)):
             movie_frame = Frame(self.movie_frame, bg="#14213D")
@@ -87,7 +85,7 @@ class Cinema:
             movie_button.grid(row=0, column=0, padx=5, pady=5)
 
             movie_label = Label(
-                movie_frame, text=title, font=("Poppins", "11", "bold"),
+                movie_frame, text=title, font=("Bahnschrift Light Condensed", "13", "bold"),
                 fg="#FFFFFF", bg="#14213D"
             )
             movie_label.grid(row=1)
