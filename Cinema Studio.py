@@ -75,7 +75,7 @@ class Cinema:
 
     def setup_movie_frames(self):
         # Frames and buttons for movies
-        movie_titles = ["King Kong", "Movie Two", "Movie Three", "Movie Four"]
+        movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front", "Dracula's Daughter"]
         self.movie_buttons = []
         for i, (photo, title) in enumerate(zip(self.photos, movie_titles)):
             movie_frame = Frame(self.movie_frame, bg="#14213D")
@@ -83,18 +83,18 @@ class Cinema:
 
             def create_movie_button_callback(index):
                 def callback():
-                    self.on_movie_button_click(index)
+                    self.displaying_movie(index)
                 return callback
 
             movie_button = Button(
                 movie_frame, image=photo, command=create_movie_button_callback(i), bd=0, relief=FLAT
             )
             movie_button.image = photo
-            movie_button.grid(row=0, column=0, padx=5, pady=5)
+            movie_button.grid(row=0, column=0, padx=10, pady=5)
 
             movie_label = Label(
-                movie_frame, text=title, font=("Bahnschrift Light Condensed", 13, "bold"),
-                fg="#FFFFFF", bg="#14213D"
+                movie_frame, text=title, font=("Bahnschrift Light Condensed", 15),
+                fg="#FFFFFF", bg="#14213D", justify="left"
             )
             movie_label.grid(row=1)
 
@@ -117,7 +117,7 @@ class Cinema:
         if index == 0:
             self.displaying_movie(index)
         elif index == 1:
-            self.show_movie_two()
+            self.displaying_movie(index)
         elif index == 2:
             self.show_movie_three()
         elif index == 3:
@@ -150,22 +150,33 @@ class Movie:
         self.movie_box.rowconfigure(0, weight=1)
         self.movie_box.columnconfigure(0, weight=1)
 
-        custom_width = 848 # Set your desired width
+        custom_width = 900 # Set your desired width
         custom_height = 598  # Set your desired height
-        custom_x = 325  # Set your desired x position
+        custom_x = 297 # Set your desired x position
         custom_y = 72 # Set your desired y position
 
         self.movie_box.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
 
-        image_path = r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg"
-        image_path1 = r"C:\Users\xavie\OneDrive\Documents\PRG ASSESMENT\King kong banner.jpg"
-        image1 = Image.open(image_path1)
-        image = Image.open(image_path)
+        # Dictionary, Idex of movie = Movie Poster and Movie banner
+        image_paths = {
+            0:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg", 
+               r"C:\Users\xavie\OneDrive\Documents\PRG ASSESMENT\King kong banner.jpg"],
+            1:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976112-original.jpeg", 
+               r"C:\Users\xavie\Downloads\The.Day.The.Earth.Stood.Still.(1951)-poster.(16x9).jpg"],
+            2:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
+               r"C:\Users\xavie\Downloads\All-Quiet-on-the-Wester-Front-Featured.webp"],
+            3:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg",
+               r"C:\Users\xavie\Downloads\draculas-daughter-featured.webp"]
+               }
+        
+        images = image_paths[index] # Uses index that corresponds with movie poster and movie banner
+        image = Image.open(images[0])
+        image1 = Image.open(images[1])
 
         desired_width = 100
         desired_height = 143
 
-        resized_image1 = image1.resize((840, 320), Image.Resampling.LANCZOS)
+        resized_image1 = image1.resize((850, 320), Image.Resampling.LANCZOS)
         resized_image = image.resize((desired_width, desired_height), Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(resized_image)  # Save reference to the image
         self.photo1 = ImageTk.PhotoImage(resized_image1)
@@ -177,16 +188,22 @@ class Movie:
 
         self.film_frame = Frame(self.movie_box, bg=background)
         self.film_frame.grid(column=0, sticky="nsew")
+        
+        self.scrollbar = Scrollbar(self.film_frame, orient=VERTICAL)
+        self.scrollbar.grid(row=0, column=1)
 
-        self.canvas = Canvas(self.film_frame, width=848, height=450, bg=background, bd=0, highlightthickness=0)
+        movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front", "Dracula's Daughter"]
+        movie_name = movie_titles[index]
+
+        self.canvas = Canvas(self.film_frame, width=900, height=500, bg=background, bd=0, highlightthickness=0)
         self.canvas.grid(row=0, column=0)
 
-        self.canvas.create_image(3, 1, anchor="nw", image=self.photo1)
-        self.canvas.create_image(400, 290, anchor="nw", image=self.photo)
+        self.canvas.create_image(30, 1, anchor="nw", image=self.photo1)
+        self.canvas.create_image(55, 330, anchor="nw", image=self.photo)
 
-        self.canvas.create_text(10, 315, text="KING KONG", font=("Britannic Bold", 45), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(11, 370, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(10, 400, text="Bloody violence, sexual references & offensive language", font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(165, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(165, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(165, 400, text="Bloody violence, sexual references & offensive language", font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
 
     def enable_button(self, partner, index):
         partner.enable_all_buttons()
@@ -197,7 +214,7 @@ if __name__ == "__main__":
     root = Tk()
     root.title("Cinema")
 
-    desired_width = 1050
+    desired_width = 1100
     desired_height = 600
 
     # Calculate the center of the screen
