@@ -189,22 +189,29 @@ class Movie:
         self.film_frame = Frame(self.movie_box, bg=background)
         self.film_frame.grid(column=0, sticky="nsew")
         
+        #self.exit_button_frame = Frame(self.film_frame, bg=background)
+        #self.exit_button_frame.grid(row=0, column=0, sticky="ns")
+
+        self.exit_button = Button(self.film_frame, text="x", font=("Biome Light", 17), bg=background, 
+                                  fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, command=partial(self.enable_button, partner, index))
+        self.exit_button.grid(row=0, column=0, sticky="n")
+
         self.scrollbar = Scrollbar(self.film_frame, orient=VERTICAL)
-        self.scrollbar.grid(row=0, column=1)
+        self.scrollbar.grid(row=0, column=2)
 
         movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front", "Dracula's Daughter"]
         movie_name = movie_titles[index]
 
-        self.canvas = Canvas(self.film_frame, width=900, height=500, bg=background, bd=0, highlightthickness=0)
-        self.canvas.grid(row=0, column=0)
+        self.canvas = Canvas(self.film_frame, width=852, height=500, bg=background, bd=0, highlightthickness=0)
+        self.canvas.grid(row=0, column=1)
 
-        self.canvas.create_image(30, 1, anchor="nw", image=self.photo1)
-        self.canvas.create_image(55, 330, anchor="nw", image=self.photo)
+        self.canvas.create_image(1, 1, anchor="nw", image=self.photo1)
+        self.canvas.create_image(26, 330, anchor="nw", image=self.photo)
 
-        self.canvas.create_text(165, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(165, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(165, 400, text="Bloody violence, sexual references & offensive language", font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
-
+        self.canvas.create_text(135, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(135, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(135, 400, text="Bloody violence, sexual references & offensive language", font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
+    
     def enable_button(self, partner, index):
         partner.enable_all_buttons()
         self.movie_box.destroy()
