@@ -22,6 +22,34 @@ class Movie_info_storage:
         with open(file_path, 'r') as file:
             data = json.load(file)
             return data.get('movies', [])
+    
+class ToggleButton(Button):
+    def __init__(self, parent, on_colour, off_colour, on_command=None, off_command=None, *args, **kwargs):
+        self.is_on = False
+
+        
+        self.on_colour = on_colour
+        self.off_colour = off_colour
+
+        self.on_command = on_command
+        self.off_command = off_command
+
+        super().__init__(parent, bg=self.off_colour, command=self.toggle, *args, **kwargs)
+
+    def toggle(self):
+        if self.is_on:
+
+            self.config(bg=self.off_colour)
+            if self.off_command:
+                self.off_command()
+        else:
+            
+
+            self.config(bg=self.on_colour)
+            if self.on_command:
+                self.on_command()
+        self.is_on = not self.is_on
+
 
 class Cinema():
     @staticmethod
@@ -31,22 +59,7 @@ class Cinema():
     def __init__(self, parent, movie_info):
         self.parent = parent
 
-        #self.movies = [Movie_details(movie_data) for movie_data in movie_info.data]
-
-        #self.movies = Movie_details(movie_info.data[0])
-
-        if len(movie_info.data) > 0:
-            self.movie_info = movie_info.data  # Store the movie data list
-            first_movie = movie_info.data[0]
-            if 'image_poster' in first_movie:
-                print("Image Poster:", first_movie['image_poster'])
-            else:
-                print("'image_poster' key not found in the first movie data.")
-        else:
-            print("No movie data available.")
-
         # Load and resize images using Pillow
-        
         desired_size = (200, 293)
         self.photos = []
 
@@ -78,8 +91,8 @@ class Cinema():
         self.canvas = Canvas(self.side_tab, width=200, height=200, bg="#19294D", bd=0, highlightthickness=0)
         self.canvas.grid(row=0, column=0)
 
-        self.canvas.create_text(10, -1, text="RIZZ", font=("Broadway", 45), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 25), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", 45), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 17), fill="#FCA311", anchor="nw")
 
         self.setup_movie_frames()
         self.setup_side_buttons()
@@ -146,7 +159,7 @@ class Cinema():
         for button in self.movie_buttons:
             button.config(state=DISABLED)
 
-        Movie(self.parent, self, index)
+        Movie(self.parent, self, index, movie_info)
 
     def enable_all_buttons(self):
         for button in self.movie_buttons:
@@ -154,12 +167,13 @@ class Cinema():
 
 
 class Movie(Toplevel):
-    def __init__(self, parent, partner, index, *args, **kwargs):
+    def __init__(self, parent, partner, index, movie_info, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.parent = parent
         self.partner = partner
         self.index = index
+        self.movie_info = movie_info
         self.is_minimized = False
         self.is_restoring = False
         self.last_state = self.parent.wm_state()
@@ -169,8 +183,8 @@ class Movie(Toplevel):
         self.parent.bind("<Unmap>", self.on_unmap)
         self.parent.bind("<Map>", self.on_map)
         self.parent.bind("<Configure>", self.handle_configure)
-  
 
+        print("Movie title:", self.movie_info.data[index]['title'])
 
         background = "#14213D"
 
@@ -196,20 +210,11 @@ class Movie(Toplevel):
         self.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
         self.configure(bg=background)
 
-        image_paths = {
-            0: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg",
-                r"C:\Users\xavie\OneDrive\Documents\PRG ASSESMENT\King kong banner.jpg"],
-            1: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976112-original.jpeg",
-                r"C:\Users\xavie\Downloads\The.Day.The.Earth.Stood.Still.(1951)-poster.(16x9).jpg"],
-            2: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
-                r"C:\Users\xavie\Downloads\All-Quiet-on-the-Wester-Front-Featured.webp"],
-            3: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg",
-                r"C:\Users\xavie\Downloads\draculas-daughter-featured.webp"]
-        }
+        movie_poster_path = self.movie_info.data[index]['image_poster']
+        movie_banner_path = self.movie_info.data[index]['image_banner']
 
-        images = image_paths[index]
-        image = Image.open(images[0])
-        image1 = Image.open(images[1])
+        image = Image.open(movie_poster_path)
+        image1 = Image.open(movie_banner_path)
 
         desired_width = 100
         desired_height = 143
@@ -235,18 +240,11 @@ class Movie(Toplevel):
 
         self.font = Font(family="Bahnschrift Light Condensed", size=13)
 
-        movie_info = {0:["King Kong","R13  115min | 6 june 2024","Bloody violence, sexual references & offensive language",
-                           "Join the epic adventure as King Kong, a colossal ape, battles dangers on Skull Island and the streets of New York City. A thrilling tale of courage and survival."], 
-                        1:["The Day the Earth stood still", "R13  130min | 15 june 2024", "Bloody violence & offensive language",
-                           "Experience the classic sci-fi as an alien visitor arrives with a powerful message for humanity. A thought-provoking journey of first contact and global tension."], 
-                        2:["All quiet on the Western Front", "R18  140min | 24 june 2024", "Bloody violence, gore, sexual refrences, war & offensive language", 
-                           "Dive into the harrowing World War I drama that follows German soldiers' struggles on the brutal Western Front. A poignant exploration of the horrors of war."],
-                        3:["Dracula's Daughter", "R18  104min | 3 june 2024", "Bloody violence, gore & offensive language",
-                           "Enter the chilling world of Dracula's lineage as his daughter navigates life and immortality in a modern era. A haunting tale of darkness and desire."]}
-        movie_name = movie_info[index][0]
-        movie_info_1 = movie_info[index][1]
-        movie_info_2 = movie_info[index][2]
-        movie_info_3 = movie_info[index][3]
+
+        movie_title = self.movie_info.data[index]['title']
+        movie_info = f"{self.movie_info.data[index]['rating']}  {self.movie_info.data[index]['duration']}  |  {self.movie_info.data[index]['release_date']}"
+        movie_warnings = self.movie_info.data[index]['warnings']
+        movie_summary = self.movie_info.data[index]['summary']
 
 
         self.canvas = Canvas(self.film_frame, width=852, height=598, bg=background, bd=0, highlightthickness=0,
@@ -270,13 +268,13 @@ class Movie(Toplevel):
         self.canvas.create_text(1, 530, text="Screening Times: ", font=("Bahnschrift Light Condensed", 20),
                                  fill="#E5E5E5", anchor="w")
 
-        self.canvas.create_text(135, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(135, 325, text=movie_title, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
 
-        self.canvas.create_text(135, 375, text=movie_info_1, font=("Bahnschrift Light Condensed", 20), fill="#E5E5E5", anchor="nw")
+        self.canvas.create_text(135, 375, text=movie_info, font=("Bahnschrift Light Condensed", 20), fill="#E5E5E5", anchor="nw")
         
-        self.canvas.create_text(135, 400, text=movie_info_2, font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw")
+        self.canvas.create_text(135, 400, text=movie_warnings, font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw")
         
-        self.wrap_text(movie_info_3, 600)
+        self.wrap_text(movie_summary, 600)
         
         self.create_date_buttons()
 
@@ -386,8 +384,8 @@ class Movie(Toplevel):
             button.grid(row=0, column=i, padx=10, pady=10, sticky="ns")
 
     def show_times(self, date):
+        print(f"Showing times for date: {date}")
 
-        # Clear existing buttons in self.time_frame
         for widget in self.time_frame.winfo_children():
             widget.destroy()
 
@@ -442,8 +440,111 @@ class Movie(Toplevel):
     def book_time(self, date, time):
             print(f"Booking for {date.strftime('%d %b')} at {time}")
 
+            Movie_booking(self, self.parent, self.index, self.movie_info, date, time)
+
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(-1 * int(event.delta / 120), "units")
+
+class Movie_booking(Toplevel):
+    def __init__(self, parent, partner, index, movie_info, date, time,*args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+    
+        self.parent = parent
+        self.partner = partner
+        self.index = index
+        self.movie_info = movie_info 
+        self.parent.bind("<Configure>", self.handle_configure)   
+
+        background = "#14213D"
+
+        self.overrideredirect(True)
+        self.transient(self.parent)
+        self.lift()
+
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
+        custom_width = 900
+        custom_height = 598
+
+        parent_x = self.parent.winfo_rootx()
+        parent_y = self.parent.winfo_rooty()
+
+        custom_x = parent_x 
+        custom_y = parent_y 
+
+        self.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
+        self.configure(bg=background)
+
+        self.film_frame = Frame(self, bg=background)
+        self.film_frame.grid(column=0, sticky="nsew")
+
+        self.canvas = Canvas(self.film_frame, bg=background, highlightthickness=0, width=852, height=598)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+
+        num_seats_per_row = 18
+        button_width = 20
+        button_height= 35
+        button_spacing = 5
+
+        total_button_width = num_seats_per_row * button_width + (num_seats_per_row - 1) * button_spacing
+        start_x = (900 - total_button_width) // 2
+
+        self.canvas.create_rectangle(172, 150, 727, 430, fill="#1e2749", outline="#1e2749")
+
+        for row in range(3):
+            for col in range(num_seats_per_row):
+                x_position = start_x + col * (button_width + button_spacing)
+                y_position = 300 + row * (button_height + button_spacing)
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = self.clicked_seat, off_command=self.unlcicked_seat, anchor='n', bd=0, relief=FLAT)
+                self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
+
+        for row in range(2):
+            for col in range(num_seats_per_row):
+                x_position = start_x + col * (button_width + button_spacing)
+                y_position = 190 + row * (button_height + button_spacing)
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = self.clicked_seat, off_command=self.unlcicked_seat, anchor='n', bd=0, relief=FLAT)
+                self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
+
+        self.canvas.create_text(177, 187, text="A", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+        self.canvas.create_text(177, 227, text="B", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+        self.canvas.create_text(177, 297, text="C", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+        self.canvas.create_text(177, 337, text="D", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+        self.canvas.create_text(177, 377, text="E", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+        self.canvas.create_text(177, 50, text="Choose your seats: ", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+
+        start = start_x - 30
+        self.canvas.create_polygon(172, 100, 727, 100, 697, 130, 202, 130, fill="#19294D", outline="#1e2749")
+
+        self.canvas.create_text(425, 100, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+    def clicked_seat(self):
+        print("Clicked seat")
+    
+    def unlcicked_seat(self):
+        print("Unclicked seat")
+
+    def handle_configure(self, event):
+        self.bring_movie_box_front(event)
+
+    def bring_movie_box_front(self, event=None):
+        self.lift()
+        self.attributes("-topmost", True)
+        self.parent.attributes("-topmost", False)
+        self.after(10, lambda: self.attributes("-topmost", False)) 
+
+        
+
+            
+
+
+
+
+        
+
     
 
 
