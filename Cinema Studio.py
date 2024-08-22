@@ -3,28 +3,57 @@ from PIL import Image, ImageTk
 from functools import partial
 from tkinter.font import Font
 from datetime import datetime, timedelta
+import json
+import os
+
+file_name = 'data.json'
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Build the full path to the data.json file
+file_path = os.path.join(script_dir, file_name)
+
+class Movie_info_storage:
+    def __init__(self):
+        self.data = self.load_data(file_path)
+
+    def load_data(self, file_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return data.get('movies', [])
 
 class Cinema():
     @staticmethod
     def on_button_click():
         print("hello!")
 
-    def __init__(self, parent):
+    def __init__(self, parent, movie_info):
         self.parent = parent
 
+        #self.movies = [Movie_details(movie_data) for movie_data in movie_info.data]
+
+        #self.movies = Movie_details(movie_info.data[0])
+
+        if len(movie_info.data) > 0:
+            self.movie_info = movie_info.data  # Store the movie data list
+            first_movie = movie_info.data[0]
+            if 'image_poster' in first_movie:
+                print("Image Poster:", first_movie['image_poster'])
+            else:
+                print("'image_poster' key not found in the first movie data.")
+        else:
+            print("No movie data available.")
+
         # Load and resize images using Pillow
-        image_paths = [
-            r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg",
-            r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976112-original.jpeg",
-            r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
-            r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg"
-        ]
+        
         desired_size = (200, 293)
         self.photos = []
 
-        for path in image_paths:
-            image = Image.open(path)
-            resized_image = image.resize(desired_size, Image.Resampling.LANCZOS)
+        for movie in movie_info.data:
+            image_path = movie['image_poster']
+            image = Image.open(image_path)
+            resized_image = image.resize(desired_size, Image.LANCZOS)
             photo = ImageTk.PhotoImage(resized_image)
             self.photos.append(photo)
 
@@ -228,7 +257,7 @@ class Movie(Toplevel):
         self.canvas.create_window((1, 550), window=self.scrollable_frame, anchor="nw")
 
         self.time_frame = Frame(self.canvas, bg="#19294D")
-        self.canvas.create_window((0,630), window=self.time_frame, anchor="nw")
+        self.canvas.create_window((2,630), window=self.time_frame, anchor="nw")
 
         self.scrollbar.config(command=self.canvas.yview)
 
@@ -237,7 +266,9 @@ class Movie(Toplevel):
 
         self.canvas.create_image(1, 1, anchor="nw", image=self.photo1)
         self.canvas.create_image(26, 330, anchor="nw", image=self.photo)
-
+        
+        self.canvas.create_text(1, 530, text="Screening Times: ", font=("Bahnschrift Light Condensed", 20),
+                                 fill="#E5E5E5", anchor="w")
 
         self.canvas.create_text(135, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
 
@@ -252,11 +283,11 @@ class Movie(Toplevel):
         self.canvas.create_text(150, 1000,
                                 text="Blah blah blah blah blah Blah",
                                 font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw",)
-        
-        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
 
         self.canvas.update_idletasks()  # Ensure all pending events are processed
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
+
+        self.bind("<MouseWheel>", self.on_mousewheel)
         
 
     def handle_configure(self, event):
@@ -346,16 +377,15 @@ class Movie(Toplevel):
         for i in range(7):
             date = today + timedelta(days=i)
             date_str = date.strftime("%d %b")
-            print(f"Creating button for {date_str}")  # Debug print
             button = Button(
                 self.scrollable_frame, text=date_str, font=("Bahnschrift Light Condensed", 15),
                 bg="#1e2749", fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, width=12,
-                command=lambda d=date: self.show_times(d)
+                command=lambda d=date: self.show_times(d),
+                takefocus=False
             )
             button.grid(row=0, column=i, padx=10, pady=10, sticky="ns")
 
     def show_times(self, date):
-        print(f"Showing times for date: {date}")
 
         # Clear existing buttons in self.time_frame
         for widget in self.time_frame.winfo_children():
@@ -375,29 +405,28 @@ class Movie(Toplevel):
         current_time = datetime.now().time()
 
         day_diff = (date.date() - current_date).days
-        print(f"Day difference: {day_diff}")  # Debug print
 
         times = times_for_days.get(day_diff, [])
         if day_diff == 0:
             times = [t for t in times if datetime.strptime(t, "%I:%M %p").time() > current_time]
 
         max_width = 150 # Maximum width before starting a new row
-        button_width = 24 # Width of each button (adjust as per your button width)
+        button_width = 24 # Width of each button
 
         current_width = 0
         row = 0
         column = 0
 
         for i, time in enumerate(times):
-            print(f"Adding button for time: {time}")  # Debug print
             time_button = Button(
                 self.time_frame, text=time, font=("Bahnschrift Light Condensed", 15),
                 bg="#e09f3e", fg="#FFFFFF", anchor='w', bd=0, relief=FLAT,
-                command=lambda t=time: self.book_time(date, t), width=24, height=2
+                command=lambda t=time: self.book_time(date, t), width=24, height=2,
+                takefocus=False
             )
             time_button.grid(row=row, column=column, padx=7, pady=10, sticky="w")
 
-            button_width_with_padding = button_width + 17 # Adjust padding as needed
+            button_width_with_padding = button_width + 17 
             current_width += button_width_with_padding
 
             if current_width > max_width:
@@ -415,14 +444,9 @@ class Movie(Toplevel):
 
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(-1 * int(event.delta / 120), "units")
-        
+    
 
 
-
-    #def on_window_map(self, event):
-        #if not hasattr(self, 'has_shown'):
-           # self.has_shown = True
-           # self.after(500, lambda: self.deiconify())
 
 # main routine
 if __name__ == "__main__":
@@ -450,5 +474,8 @@ if __name__ == "__main__":
     root.rowconfigure(0, weight=1)
     root.columnconfigure(1, weight=1)
 
-    Cinema(root)
+    movie_info = Movie_info_storage()
+
+    # Initialize your Cinema application
+    Cinema(root, movie_info)
     root.mainloop()
