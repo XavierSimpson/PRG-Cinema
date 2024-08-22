@@ -56,8 +56,8 @@ class Cinema():
     def on_button_click():
         print("hello!")
 
-    def __init__(self, parent, movie_info):
-        self.parent = parent
+    def __init__(self, root, movie_info):
+        self.root = root
 
         # Load and resize images using Pillow
         desired_size = (200, 293)
@@ -71,7 +71,7 @@ class Cinema():
             self.photos.append(photo)
 
         # Cinema Frame
-        self.cinema_frame = Frame(parent, bg="#14213D")
+        self.cinema_frame = Frame(root, bg="#14213D")
         self.cinema_frame.grid(column=1, sticky="nsew")
 
         self.cinema_showing = Label(
@@ -85,14 +85,14 @@ class Cinema():
         self.movie_frame.grid(row=2, sticky="nsew")
 
         # Frame for Side Tab
-        self.side_tab = Frame(parent, bg="#19294D", width=10)
+        self.side_tab = Frame(root, bg="#19294D", width=10)
         self.side_tab.grid(row=0, column=0, sticky="NS")
 
         self.canvas = Canvas(self.side_tab, width=200, height=200, bg="#19294D", bd=0, highlightthickness=0)
         self.canvas.grid(row=0, column=0)
 
-        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", 45), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 17), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(10, -1, text="RIZZ", font=("Broadway", 45), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 25), fill="#FCA311", anchor="nw")
 
         self.setup_movie_frames()
         self.setup_side_buttons()
@@ -110,7 +110,7 @@ class Cinema():
 
             button = Button(
                 self.side_tab, text=text, font=("Bahnschrift Light Condensed", 17),
-                fg="#FFFFFF", bg="#19294D", anchor="w", command=create_label_button_callback(i), bd=0, relief=FLAT
+                fg="#FFFFFF", bg="#19294D", anchor="w", command=lambda i=i: self.on_label_button_click(i), bd=0, relief=FLAT
             )
             button.grid(row=i+1, padx=15, pady=7, sticky="WE")
 
@@ -124,13 +124,8 @@ class Cinema():
             movie_frame = Frame(self.movie_frame, bg="#14213D")
             movie_frame.grid(row=0, column=i+1, pady=5)
 
-            def create_movie_button_callback(index):
-                def callback():
-                    self.displaying_movie(index)
-                return callback
-
             movie_button = Button(
-                movie_frame, image=photo, command=create_movie_button_callback(i), bd=0, relief=FLAT
+                movie_frame, image=photo, command= lambda i=i: self.displaying_movie(i), bd=0, relief=FLAT,
             )
             movie_button.image = photo
             movie_button.grid(row=0, column=0, padx=10, pady=5)
@@ -153,13 +148,13 @@ class Cinema():
         elif index == 3:
             print("4")
         elif index == 4:
-            self.parent.destroy()
+            self.root.destroy()
 
     def displaying_movie(self, index):
         for button in self.movie_buttons:
             button.config(state=DISABLED)
 
-        Movie(self.parent, self, index, movie_info)
+        Movie(self.root, self, index, movie_info)
 
     def enable_all_buttons(self):
         for button in self.movie_buttons:
@@ -167,29 +162,29 @@ class Cinema():
 
 
 class Movie(Toplevel):
-    def __init__(self, parent, partner, index, movie_info, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, root, partner, index, movie_info, *args, **kwargs):
+        super().__init__(root, *args, **kwargs)
 
-        self.parent = parent
+        self.root = root
         self.partner = partner
         self.index = index
         self.movie_info = movie_info
         self.is_minimized = False
         self.is_restoring = False
-        self.last_state = self.parent.wm_state()
+        self.last_state = self.root.wm_state()
         self.offset_x = 0
         self.offset_y = 0
 
-        self.parent.bind("<Unmap>", self.on_unmap)
-        self.parent.bind("<Map>", self.on_map)
-        self.parent.bind("<Configure>", self.handle_configure)
+        self.root.bind("<Unmap>", self.on_unmap)
+        self.root.bind("<Map>", self.on_map)
+        self.root.bind("<Configure>", self.handle_configure)
 
         print("Movie title:", self.movie_info.data[index]['title'])
 
         background = "#14213D"
 
         self.overrideredirect(True)
-        self.transient(self.parent)
+        self.transient(self.root)
         self.lift()
 
         self.rowconfigure(0, weight=1)
@@ -197,8 +192,8 @@ class Movie(Toplevel):
 
         self.calculate_original_offset()
 
-        parent_x = self.parent.winfo_rootx()
-        parent_y = self.parent.winfo_rooty()
+        parent_x = self.root.winfo_rootx()
+        parent_y = self.root.winfo_rooty()
 
         # Coordinates of the Toplevel window
         custom_width = 900
@@ -293,13 +288,13 @@ class Movie(Toplevel):
         self.follow_main_window(event)   
 
     def on_unmap(self, event):
-        current_state = self.parent.wm_state()
+        current_state = self.root.wm_state()
         if self.last_state != 'iconic' and current_state == 'iconic':
             self.is_minimized = True
         self.last_state = current_state
 
     def on_map(self, event):
-        current_state = self.parent.wm_state()
+        current_state = self.root.wm_state()
         if self.last_state == 'iconic' and current_state != 'iconic':
             self.is_restoring = True
             self.after(300, self.finish_restore)
@@ -317,7 +312,7 @@ class Movie(Toplevel):
     def bring_movie_box_front(self, event=None):
         self.lift()
         self.attributes("-topmost", True)
-        self.parent.attributes("-topmost", False)
+        self.root.attributes("-topmost", False)
         self.after(10, lambda: self.attributes("-topmost", False))
 
     def enable_button(self, partner, index):
@@ -326,8 +321,8 @@ class Movie(Toplevel):
 
     def calculate_original_offset(self):
         # Get initial positions
-        parent_x = self.parent.winfo_rootx()
-        parent_y = self.parent.winfo_rooty()
+        parent_x = self.root.winfo_rootx()
+        parent_y = self.root.winfo_rooty()
         
         toplevel_x = 297
         toplevel_y = 72
@@ -341,8 +336,8 @@ class Movie(Toplevel):
 
     def follow_main_window(self, event):
         if not self.is_restoring and not self.is_minimized:
-            parent_x = self.parent.winfo_rootx()
-            parent_y = self.parent.winfo_rooty()
+            parent_x = self.root.winfo_rootx()
+            parent_y = self.root.winfo_rooty()
 
             # Use original offsets to maintain relative position
             custom_x = parent_x + 199
@@ -384,7 +379,6 @@ class Movie(Toplevel):
             button.grid(row=0, column=i, padx=10, pady=10, sticky="ns")
 
     def show_times(self, date):
-        print(f"Showing times for date: {date}")
 
         for widget in self.time_frame.winfo_children():
             widget.destroy()
@@ -437,29 +431,33 @@ class Movie(Toplevel):
 
 
 
+
     def book_time(self, date, time):
             print(f"Booking for {date.strftime('%d %b')} at {time}")
 
-            Movie_booking(self, self.parent, self.index, self.movie_info, date, time)
+            Movie_booking(self.root, self.index, self.movie_info, date, time)
 
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(-1 * int(event.delta / 120), "units")
 
 class Movie_booking(Toplevel):
-    def __init__(self, parent, partner, index, movie_info, date, time,*args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, partner, index, movie_info, date, time,*args, **kwargs):
+        super().__init__(root, *args, **kwargs)
 
+        self.seats = []
+        self.booked_seats = []
+        self.buttons = {}
     
-        self.parent = parent
+        self.root = root
         self.partner = partner
         self.index = index
         self.movie_info = movie_info 
-        self.parent.bind("<Configure>", self.handle_configure)   
+        self.root.bind("<Configure>", self.handle_configure)   
 
         background = "#14213D"
 
         self.overrideredirect(True)
-        self.transient(self.parent)
+        self.transient(self.root)
         self.lift()
 
         self.rowconfigure(0, weight=1)
@@ -468,11 +466,11 @@ class Movie_booking(Toplevel):
         custom_width = 900
         custom_height = 598
 
-        parent_x = self.parent.winfo_rootx()
-        parent_y = self.parent.winfo_rooty()
+        root_x = self.root.winfo_rootx()
+        root_y = self.root.winfo_rooty()
 
-        custom_x = parent_x 
-        custom_y = parent_y 
+        custom_x = root_x  + 199
+        custom_y = root_y  + 1
 
         self.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
         self.configure(bg=background)
@@ -480,8 +478,16 @@ class Movie_booking(Toplevel):
         self.film_frame = Frame(self, bg=background)
         self.film_frame.grid(column=0, sticky="nsew")
 
-        self.canvas = Canvas(self.film_frame, bg=background, highlightthickness=0, width=852, height=598)
-        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.scrollbar = Scrollbar(self.film_frame, orient=VERTICAL)
+        self.scrollbar.grid(row=0, column=2, sticky='nsew', padx=5,)
+
+        self.exit_button = Button(self.film_frame, text="x", command=self.destroy, font=("Biome Light", 17), bg = "#14213D", fg="#FFFFFF", anchor="n", bd=0, relief=FLAT)
+        self.exit_button.grid(row=0, column=0, sticky="n")
+
+        self.canvas = Canvas(self.film_frame, bg=background, highlightthickness=0, width=852, height=598, yscrollcommand=self.scrollbar.set)
+        self.canvas.grid(row=0, column=1, sticky="nsew")
+
+        self.scrollbar.config(command=self.canvas.yview)
 
         num_seats_per_row = 18
         button_width = 20
@@ -491,20 +497,21 @@ class Movie_booking(Toplevel):
         total_button_width = num_seats_per_row * button_width + (num_seats_per_row - 1) * button_spacing
         start_x = (900 - total_button_width) // 2
 
-        self.canvas.create_rectangle(172, 150, 727, 430, fill="#1e2749", outline="#1e2749")
+        self.canvas.create_rectangle(172, 150, 727, 450, fill="#1e2749", outline="#1e2749")
+        self.canvas.create_rectangle(172, 550, 727, 932, fill="#1e2749", outline="#1e2749")
 
         for row in range(3):
             for col in range(num_seats_per_row):
                 x_position = start_x + col * (button_width + button_spacing)
                 y_position = 300 + row * (button_height + button_spacing)
-                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = self.clicked_seat, off_command=self.unlcicked_seat, anchor='n', bd=0, relief=FLAT)
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = lambda s=col: self.clicked_seat(s), off_command= lambda s=col: self.unlcicked_seat(s), anchor='n', bd=0, relief=FLAT)
                 self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
 
         for row in range(2):
             for col in range(num_seats_per_row):
                 x_position = start_x + col * (button_width + button_spacing)
                 y_position = 190 + row * (button_height + button_spacing)
-                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = self.clicked_seat, off_command=self.unlcicked_seat, anchor='n', bd=0, relief=FLAT)
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = lambda s=col: self.clicked_seat(s), off_command= lambda s=col: self.unlcicked_seat(s), anchor='n', bd=0, relief=FLAT)
                 self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
 
         self.canvas.create_text(177, 187, text="A", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
@@ -517,15 +524,75 @@ class Movie_booking(Toplevel):
         self.canvas.create_text(177, 50, text="Choose your seats: ", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
 
         start = start_x - 30
-        self.canvas.create_polygon(172, 100, 727, 100, 697, 130, 202, 130, fill="#19294D", outline="#1e2749")
+        self.canvas.create_polygon(172, 100, 727, 100, 697, 130, 202, 130, fill="#19294D", outline="#1e2749")  
+
+        self.create_ticket_buttons()
 
         self.canvas.create_text(425, 100, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
 
-    def clicked_seat(self):
-        print("Clicked seat")
+        self.canvas.create_text(425, 2000, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+        self.canvas.update_idletasks()  # Ensure all pending events are processed
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+ 
+
+
+    def create_ticket_buttons(self):
+        background = "#14213D"
+
+        start_2 = 587
+        button_start = 600
+        tickets = {
+                "Adult Ticket":25.00, 
+                "Child Ticket":19.00, 
+                "Student Ticket":21.00, 
+                "Senior Ticket":18.50
+                    }
+        
+        self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+        self.canvas.create_text(500, 500, font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+
+        for i in range(len(tickets)):
+            lines = start_2 + 58
+            lines_2 = lines + 2
+            key_list = list(tickets.keys())
+
+            self.canvas.create_text(200, start_2, text=key_list[i], font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+            self.canvas.create_rectangle(172, lines, 727, lines_2, fill=background, outline=background)
+            
+            self.canvas.create_text(530 , start_2, text=f"${tickets[key_list[i]]:.2f}", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+            button = Button(self.canvas, text="Add", font=("Bahnschrift Light Condensed", 15), bg = "#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, 
+                                command=lambda p=key_list[i]: self.book_ticket(p))
+            self.canvas.create_window(640, button_start, window=button, width=100, height=40)
+
+            self.buttons[key_list[i]] = button
+
+            start_2 += 95
+            button_start += 95
+
+
+    def book_ticket(self, price):
+        print(len(self.seats))
+        print(len(self.booked_seats))
+        print("done")
+        if len(self.seats) <= len(self.booked_seats):
+            for button in self.buttons.values():
+              button.config(state=DISABLED)
+        else:
+            self.booked_seats.append(price)
+            print(self.booked_seats)
+            print("done1")
+            
+    def clicked_seat(self, seat):
+        print(f"Clicked seat {seat}")
+        self.seats.append(seat)
+        print(self.seats)
     
-    def unlcicked_seat(self):
-        print("Unclicked seat")
+    def unlcicked_seat(self, seat):
+        print(f"Unclicked seat {seat}")
+        self.seats.remove(seat)
+        print(self.seats)
 
     def handle_configure(self, event):
         self.bring_movie_box_front(event)
@@ -533,7 +600,7 @@ class Movie_booking(Toplevel):
     def bring_movie_box_front(self, event=None):
         self.lift()
         self.attributes("-topmost", True)
-        self.parent.attributes("-topmost", False)
+        self.root.attributes("-topmost", False)
         self.after(10, lambda: self.attributes("-topmost", False)) 
 
         
@@ -552,7 +619,7 @@ class Movie_booking(Toplevel):
 # main routine
 if __name__ == "__main__":
     root = Tk()
-    root.title("Cinema")
+    root.title("RIZZ Cinemas")
 
     desired_width = 1100
     desired_height = 600
