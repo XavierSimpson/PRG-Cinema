@@ -1,15 +1,14 @@
-from tkinter import *
+from tkinter import*
 from PIL import Image, ImageTk
 from functools import partial
 
-class Cinema:
+class Cinema():
     @staticmethod
     def on_button_click():
         print("hello!")
 
     def __init__(self, parent):
         self.parent = parent
-        
 
         # Load and resize images using Pillow
         image_paths = [
@@ -112,64 +111,72 @@ class Cinema:
         elif index == 4:
             self.parent.destroy()
 
-    def on_movie_button_click(self, index):
-        # Define separate functions for each movie button action
-        if index == 0:
-            self.displaying_movie(index)
-        elif index == 1:
-            self.displaying_movie(index)
-        elif index == 2:
-            self.show_movie_three()
-        elif index == 3:
-            self.show_movie_four()
-
     def displaying_movie(self, index):
         for button in self.movie_buttons:
             button.config(state=DISABLED)
 
-        Movie(self, index)
+        Movie(self.parent, self, index)
 
     def enable_all_buttons(self):
         for button in self.movie_buttons:
             button.config(state=NORMAL)
 
-    def show_movie_two(self):
-        print("Showing details for Movie Two")
 
-    def show_movie_three(self):
-        print("Showing details for Movie Three")
+class Movie(Toplevel):
+    def __init__(self, parent, partner, index, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
-    def show_movie_four(self):
-        print("Showing details for Movie Four")
+        self.parent = parent
+        self.partner = partner
+        self.index = index
+        self.is_minimized = False
+        self.is_restoring = False
+        self.last_state = self.parent.wm_state()
+        self.offset_x = 0
+        self.offset_y = 0
 
-class Movie:
-    def __init__(self, partner, index):
+        self.parent.bind("<Unmap>", self.on_unmap)
+        self.parent.bind("<Map>", self.on_map)
+        self.parent.bind("<Configure>", self.handle_configure)
+  
+
+
         background = "#14213D"
-        self.movie_box = Toplevel()
 
-        self.movie_box.rowconfigure(0, weight=1)
-        self.movie_box.columnconfigure(0, weight=1)
+        self.overrideredirect(True)
+        self.transient(self.parent)
+        self.lift()
 
-        custom_width = 900 # Set your desired width
-        custom_height = 598  # Set your desired height
-        custom_x = 297 # Set your desired x position
-        custom_y = 72 # Set your desired y position
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
 
-        self.movie_box.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
+        self.calculate_original_offset()
 
-        # Dictionary, Idex of movie = Movie Poster and Movie banner
+        parent_x = self.parent.winfo_rootx()
+        parent_y = self.parent.winfo_rooty()
+
+        # Coordinates of the Toplevel window
+        custom_width = 900
+        custom_height = 598
+
+        custom_x = parent_x + self.offset_x
+        custom_y = parent_y + self.offset_y
+
+        self.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
+        self.configure(bg=background)
+
         image_paths = {
-            0:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg", 
-               r"C:\Users\xavie\OneDrive\Documents\PRG ASSESMENT\King kong banner.jpg"],
-            1:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976112-original.jpeg", 
-               r"C:\Users\xavie\Downloads\The.Day.The.Earth.Stood.Still.(1951)-poster.(16x9).jpg"],
-            2:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
-               r"C:\Users\xavie\Downloads\All-Quiet-on-the-Wester-Front-Featured.webp"],
-            3:[r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg",
-               r"C:\Users\xavie\Downloads\draculas-daughter-featured.webp"]
-               }
-        
-        images = image_paths[index] # Uses index that corresponds with movie poster and movie banner
+            0: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9975454-original.jpg",
+                r"C:\Users\xavie\OneDrive\Documents\PRG ASSESMENT\King kong banner.jpg"],
+            1: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976112-original.jpeg",
+                r"C:\Users\xavie\Downloads\The.Day.The.Earth.Stood.Still.(1951)-poster.(16x9).jpg"],
+            2: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976560-original.jpg",
+                r"C:\Users\xavie\Downloads\All-Quiet-on-the-Wester-Front-Featured.webp"],
+            3: [r"C:\Users\xavie\Downloads\image-from-rawpixel-id-9976063-original.jpg",
+                r"C:\Users\xavie\Downloads\draculas-daughter-featured.webp"]
+        }
+
+        images = image_paths[index]
         image = Image.open(images[0])
         image1 = Image.open(images[1])
 
@@ -178,28 +185,25 @@ class Movie:
 
         resized_image1 = image1.resize((850, 320), Image.Resampling.LANCZOS)
         resized_image = image.resize((desired_width, desired_height), Image.Resampling.LANCZOS)
-        self.photo = ImageTk.PhotoImage(resized_image)  # Save reference to the image
+        self.photo = ImageTk.PhotoImage(resized_image)
         self.photo1 = ImageTk.PhotoImage(resized_image1)
 
         partner.movie_buttons[index].config(state=DISABLED)
+        self.protocol('WM_DELETE_WINDOW', partial(self.enable_button, partner, index))
 
-        self.movie_box.overrideredirect(True)
-        self.movie_box.protocol('WM_DELETE_WINDOW', partial(self.enable_button, partner, index))
-
-        self.film_frame = Frame(self.movie_box, bg=background)
+        self.film_frame = Frame(self, bg=background)
         self.film_frame.grid(column=0, sticky="nsew")
-        
-        #self.exit_button_frame = Frame(self.film_frame, bg=background)
-        #self.exit_button_frame.grid(row=0, column=0, sticky="ns")
 
-        self.exit_button = Button(self.film_frame, text="x", font=("Biome Light", 17), bg=background, 
-                                  fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, command=partial(self.enable_button, partner, index))
+        self.exit_button = Button(self.film_frame, text="x", font=("Biome Light", 17), bg=background,
+                                  fg="#FFFFFF", anchor='n', bd=0, relief=FLAT,
+                                  command=partial(self.enable_button, partner, index))
         self.exit_button.grid(row=0, column=0, sticky="n")
 
         self.scrollbar = Scrollbar(self.film_frame, orient=VERTICAL)
         self.scrollbar.grid(row=0, column=2)
 
-        movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front", "Dracula's Daughter"]
+        movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front",
+                        "Dracula's Daughter"]
         movie_name = movie_titles[index]
 
         self.canvas = Canvas(self.film_frame, width=852, height=500, bg=background, bd=0, highlightthickness=0)
@@ -209,12 +213,79 @@ class Movie:
         self.canvas.create_image(26, 330, anchor="nw", image=self.photo)
 
         self.canvas.create_text(135, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(135, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(135, 400, text="Bloody violence, sexual references & offensive language", font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
-    
+        self.canvas.create_text(135, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20),
+                                fill="#FCA311", anchor="nw")
+        self.canvas.create_text(135, 400,
+                                text="Bloody violence, sexual references & offensive language",
+                                font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
+        
+
+    def handle_configure(self, event):
+        self.on_configure(event)
+        self.follow_main_window(event)   
+
+    def on_unmap(self, event):
+        current_state = self.parent.wm_state()
+        if self.last_state != 'iconic' and current_state == 'iconic':
+            self.is_minimized = True
+        self.last_state = current_state
+
+    def on_map(self, event):
+        current_state = self.parent.wm_state()
+        if self.last_state == 'iconic' and current_state != 'iconic':
+            self.is_restoring = True
+            self.after(500, self.finish_restore)
+        self.last_state = current_state
+
+    def on_configure(self, event):
+        if not self.is_restoring:
+            self.bring_movie_box_front()
+
+    def finish_restore(self):
+        self.is_minimized = False
+        self.is_restoring = False
+        self.bring_movie_box_front()
+            
+    def bring_movie_box_front(self, event=None):
+        self.lift()
+        self.attributes("-topmost", True)
+        self.parent.attributes("-topmost", False)
+        self.after(10, lambda: self.attributes("-topmost", False))
+
     def enable_button(self, partner, index):
         partner.enable_all_buttons()
-        self.movie_box.destroy()
+        self.destroy()
+
+    def calculate_original_offset(self):
+        # Get initial positions
+        parent_x = self.parent.winfo_rootx()
+        parent_y = self.parent.winfo_rooty()
+        
+        toplevel_x = 297
+        toplevel_y = 72
+
+        # Calculate the offset
+        self.offset_x = toplevel_x - parent_x
+        self.offset_y = toplevel_y - parent_y
+
+        print(f"Offset X: {self.offset_x}, Offset Y: {self.offset_y}")
+
+
+    def follow_main_window(self, event):
+        if not self.is_restoring and not self.is_minimized:
+            parent_x = self.parent.winfo_rootx()
+            parent_y = self.parent.winfo_rooty()
+
+            # Use original offsets to maintain relative position
+            custom_x = parent_x + self.offset_x
+            custom_y = parent_y + self.offset_y
+
+            self.geometry(f"+{custom_x}+{custom_y}")
+
+    #def on_window_map(self, event):
+        #if not hasattr(self, 'has_shown'):
+           # self.has_shown = True
+           # self.after(500, lambda: self.deiconify())
 
 # main routine
 if __name__ == "__main__":
