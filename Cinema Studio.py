@@ -2,6 +2,7 @@ from tkinter import*
 from PIL import Image, ImageTk
 from functools import partial
 from tkinter.font import Font
+from datetime import datetime, timedelta
 
 class Cinema():
     @staticmethod
@@ -223,12 +224,16 @@ class Movie(Toplevel):
                              yscrollcommand=self.scrollbar.set)
         self.canvas.grid(row=0, column=1)
 
-        self.scrollable_frame = Frame(self.canvas, bg='green')
-        self.canvas.create_window((1, 600), window=self.scrollable_frame, anchor="nw")
+        self.scrollable_frame = Frame(self.canvas, bg=background)
+        self.canvas.create_window((1, 550), window=self.scrollable_frame, anchor="nw")
+
+        self.time_frame = Frame(self.canvas, bg="#19294D")
+        self.canvas.create_window((0,630), window=self.time_frame, anchor="nw")
 
         self.scrollbar.config(command=self.canvas.yview)
 
         self.canvas.create_rectangle(1, 326, 850, 480, fill="#1e2749", outline="#1e2749")
+        self.canvas.create_rectangle(1, 900, 850, 600, fill="#19294D", outline="#1e2749")
 
         self.canvas.create_image(1, 1, anchor="nw", image=self.photo1)
         self.canvas.create_image(26, 330, anchor="nw", image=self.photo)
@@ -242,8 +247,7 @@ class Movie(Toplevel):
         
         self.wrap_text(movie_info_3, 600)
         
-        self.button1 = Button(self.scrollable_frame, text="Watch trailer", font=("Bahnschrift Light Condensed", 15), bg=background, fg="#FFFFFF", anchor='n', bd=0, relief=FLAT)
-        self.button1.grid(padx=10, pady=10, row=0, column=0, sticky="n")
+        self.create_date_buttons()
 
         self.canvas.create_text(150, 1000,
                                 text="Blah blah blah blah blah Blah",
@@ -251,6 +255,7 @@ class Movie(Toplevel):
         
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
 
+        self.canvas.update_idletasks()  # Ensure all pending events are processed
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         
 
@@ -315,9 +320,6 @@ class Movie(Toplevel):
             custom_y = parent_y + 1
 
             self.geometry(f"+{custom_x}+{custom_y}")
-    
-    def on_mousewheel(self, event):
-        self.canvas.yview_scroll(-1 * int(event.delta/120), "units")
 
     def wrap_text(self, text, width):
         lines = []
@@ -337,6 +339,83 @@ class Movie(Toplevel):
         for line in lines:
          self.canvas.create_text(135, y_position, text=line, font=("Bahnschrift Light Condensed", 13), fill="#ADADAD", anchor="nw", width=width)
          y_position += self.font.metrics("linespace")
+
+    def create_date_buttons(self):
+        today = datetime.now()
+
+        for i in range(7):
+            date = today + timedelta(days=i)
+            date_str = date.strftime("%d %b")
+            print(f"Creating button for {date_str}")  # Debug print
+            button = Button(
+                self.scrollable_frame, text=date_str, font=("Bahnschrift Light Condensed", 15),
+                bg="#1e2749", fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, width=12,
+                command=lambda d=date: self.show_times(d)
+            )
+            button.grid(row=0, column=i, padx=10, pady=10, sticky="ns")
+
+    def show_times(self, date):
+        print(f"Showing times for date: {date}")
+
+        # Clear existing buttons in self.time_frame
+        for widget in self.time_frame.winfo_children():
+            widget.destroy()
+
+        times_for_days = {
+            0: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            1: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            2: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            3: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            4: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            5: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+            6: ["7:00 AM","11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"],
+        }
+
+        current_date = datetime.now().date()
+        current_time = datetime.now().time()
+
+        day_diff = (date.date() - current_date).days
+        print(f"Day difference: {day_diff}")  # Debug print
+
+        times = times_for_days.get(day_diff, [])
+        if day_diff == 0:
+            times = [t for t in times if datetime.strptime(t, "%I:%M %p").time() > current_time]
+
+        max_width = 150 # Maximum width before starting a new row
+        button_width = 24 # Width of each button (adjust as per your button width)
+
+        current_width = 0
+        row = 0
+        column = 0
+
+        for i, time in enumerate(times):
+            print(f"Adding button for time: {time}")  # Debug print
+            time_button = Button(
+                self.time_frame, text=time, font=("Bahnschrift Light Condensed", 15),
+                bg="#e09f3e", fg="#FFFFFF", anchor='w', bd=0, relief=FLAT,
+                command=lambda t=time: self.book_time(date, t), width=24, height=2
+            )
+            time_button.grid(row=row, column=column, padx=7, pady=10, sticky="w")
+
+            button_width_with_padding = button_width + 17 # Adjust padding as needed
+            current_width += button_width_with_padding
+
+            if current_width > max_width:
+                row += 1
+                column = 0
+                current_width = 0
+            else:
+                column += 1
+
+
+
+
+    def book_time(self, date, time):
+            print(f"Booking for {date.strftime('%d %b')} at {time}")
+
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(-1 * int(event.delta / 120), "units")
+        
 
 
 
