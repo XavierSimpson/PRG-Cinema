@@ -1,6 +1,7 @@
 from tkinter import*
 from PIL import Image, ImageTk
 from functools import partial
+from tkinter.font import Font
 
 class Cinema():
     @staticmethod
@@ -47,8 +48,8 @@ class Cinema():
         self.canvas = Canvas(self.side_tab, width=200, height=200, bg="#19294D", bd=0, highlightthickness=0)
         self.canvas.grid(row=0, column=0)
 
-        self.canvas.create_text(10, -1, text="RIZZ", font=("Britannic Bold", 45), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 17), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(10, -1, text="RIZZ", font=("Broadway", 45), fill="#FCA311", anchor="nw")
+        self.canvas.create_text(11, 50, text="Cinemas", font=("Bahnschrift Light Condensed", 25), fill="#FCA311", anchor="nw")
 
         self.setup_movie_frames()
         self.setup_side_buttons()
@@ -159,8 +160,8 @@ class Movie(Toplevel):
         custom_width = 900
         custom_height = 598
 
-        custom_x = parent_x + self.offset_x
-        custom_y = parent_y + self.offset_y
+        custom_x = parent_x + 199
+        custom_y = parent_y + 1
 
         self.geometry(f"{custom_width}x{custom_height}+{custom_x}+{custom_y}")
         self.configure(bg=background)
@@ -200,24 +201,57 @@ class Movie(Toplevel):
         self.exit_button.grid(row=0, column=0, sticky="n")
 
         self.scrollbar = Scrollbar(self.film_frame, orient=VERTICAL)
-        self.scrollbar.grid(row=0, column=2)
+        self.scrollbar.grid(row=0, column=2, sticky='ns', padx=5)
 
-        movie_titles = ["King Kong", "The Day the Earth stood still", "All quiet on the Western Front",
-                        "Dracula's Daughter"]
-        movie_name = movie_titles[index]
+        self.font = Font(family="Bahnschrift Light Condensed", size=13)
 
-        self.canvas = Canvas(self.film_frame, width=852, height=500, bg=background, bd=0, highlightthickness=0)
+        movie_info = {0:["King Kong","R13  115min | 6 june 2024","Bloody violence, sexual references & offensive language",
+                           "Join the epic adventure as King Kong, a colossal ape, battles dangers on Skull Island and the streets of New York City. A thrilling tale of courage and survival."], 
+                        1:["The Day the Earth stood still", "R13  130min | 15 june 2024", "Bloody violence & offensive language",
+                           "Experience the classic sci-fi as an alien visitor arrives with a powerful message for humanity. A thought-provoking journey of first contact and global tension."], 
+                        2:["All quiet on the Western Front", "R18  140min | 24 june 2024", "Bloody violence, gore, sexual refrences, war & offensive language", 
+                           "Dive into the harrowing World War I drama that follows German soldiers' struggles on the brutal Western Front. A poignant exploration of the horrors of war."],
+                        3:["Dracula's Daughter", "R18  104min | 3 june 2024", "Bloody violence, gore & offensive language",
+                           "Enter the chilling world of Dracula's lineage as his daughter navigates life and immortality in a modern era. A haunting tale of darkness and desire."]}
+        movie_name = movie_info[index][0]
+        movie_info_1 = movie_info[index][1]
+        movie_info_2 = movie_info[index][2]
+        movie_info_3 = movie_info[index][3]
+
+
+        self.canvas = Canvas(self.film_frame, width=852, height=598, bg=background, bd=0, highlightthickness=0,
+                             yscrollcommand=self.scrollbar.set)
         self.canvas.grid(row=0, column=1)
+
+        self.scrollable_frame = Frame(self.canvas, bg='green')
+        self.canvas.create_window((1, 600), window=self.scrollable_frame, anchor="nw")
+
+        self.scrollbar.config(command=self.canvas.yview)
+
+        self.canvas.create_rectangle(1, 326, 850, 480, fill="#1e2749", outline="#1e2749")
 
         self.canvas.create_image(1, 1, anchor="nw", image=self.photo1)
         self.canvas.create_image(26, 330, anchor="nw", image=self.photo)
 
+
         self.canvas.create_text(135, 325, text=movie_name, font=("Britannic Bold", 40), fill="#FCA311", anchor="nw")
-        self.canvas.create_text(135, 375, text="R13  115min | 6 june 2024", font=("Bahnschrift Light Condensed", 20),
-                                fill="#FCA311", anchor="nw")
-        self.canvas.create_text(135, 400,
-                                text="Bloody violence, sexual references & offensive language",
-                                font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw")
+
+        self.canvas.create_text(135, 375, text=movie_info_1, font=("Bahnschrift Light Condensed", 20), fill="#E5E5E5", anchor="nw")
+        
+        self.canvas.create_text(135, 400, text=movie_info_2, font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw")
+        
+        self.wrap_text(movie_info_3, 600)
+        
+        self.button1 = Button(self.scrollable_frame, text="Watch trailer", font=("Bahnschrift Light Condensed", 15), bg=background, fg="#FFFFFF", anchor='n', bd=0, relief=FLAT)
+        self.button1.grid(padx=10, pady=10, row=0, column=0, sticky="n")
+
+        self.canvas.create_text(150, 1000,
+                                text="Blah blah blah blah blah Blah",
+                                font=("Bahnschrift Light Condensed", 15), fill="#FCA311", anchor="nw",)
+        
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
         
 
     def handle_configure(self, event):
@@ -234,7 +268,7 @@ class Movie(Toplevel):
         current_state = self.parent.wm_state()
         if self.last_state == 'iconic' and current_state != 'iconic':
             self.is_restoring = True
-            self.after(500, self.finish_restore)
+            self.after(300, self.finish_restore)
         self.last_state = current_state
 
     def on_configure(self, event):
@@ -277,10 +311,34 @@ class Movie(Toplevel):
             parent_y = self.parent.winfo_rooty()
 
             # Use original offsets to maintain relative position
-            custom_x = parent_x + self.offset_x
-            custom_y = parent_y + self.offset_y
+            custom_x = parent_x + 199
+            custom_y = parent_y + 1
 
             self.geometry(f"+{custom_x}+{custom_y}")
+    
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(-1 * int(event.delta/120), "units")
+
+    def wrap_text(self, text, width):
+        lines = []
+        words = text.split()
+        current_line = words[0]
+        
+        for word in words[1:]:
+            if self.font.measure(current_line + " " + word) < width:
+                current_line += " " + word
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        lines.append(current_line)
+        
+        y_position = 430
+        for line in lines:
+         self.canvas.create_text(135, y_position, text=line, font=("Bahnschrift Light Condensed", 13), fill="#ADADAD", anchor="nw", width=width)
+         y_position += self.font.metrics("linespace")
+
+
 
     #def on_window_map(self, event):
         #if not hasattr(self, 'has_shown'):
