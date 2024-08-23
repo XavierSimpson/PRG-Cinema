@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 from functools import partial
 from tkinter.font import Font
 from datetime import datetime, timedelta
+import time 
 import json
 import os
 
@@ -508,7 +509,7 @@ class Movie_info(Toplevel):
 
 
 class Movie_booking(Toplevel):
-    def __init__(self, partner, index, movie_info, date, time,*args, **kwargs):
+    def __init__(self, partner, index, movie_info, date, movie_time,*args, **kwargs):
         super().__init__(root, *args, **kwargs)
 
         # Lists / Dictionaries 
@@ -523,7 +524,7 @@ class Movie_booking(Toplevel):
         self.partner = partner
         self.index = index
         self.movie_info = movie_info 
-        self.time = time
+        self.time = movie_time
         self.date = date
 
         #Bindings 
@@ -571,29 +572,42 @@ class Movie_booking(Toplevel):
         self.canvas.grid(row=0, column=1, sticky="nsew")
         self.scrollbar.config(command=self.canvas.yview)
 
-        #Screen visual
-        self.canvas.create_polygon(172, 100, 727, 100, 697, 130, 202, 130, fill="#19294D", outline="#1e2749") 
-        self.canvas.create_text(425, 100, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
-
         #GUI functions to set up seat GUI and ticket booking GUI
         self.make_seats()
         self.create_ticket_buttons()
+        self.canvas.update_idletasks() 
 
         for button_up, button_down in self.buttons.values():
-            button_up.config(state=DISABLED)
-            button_down.config(state=DISABLED)
+                button_down.config(state=DISABLED)
+
+        for seat_button in self.seat_buttons.values():
+                seat_button.config(state=DISABLED)
 
         #This text changes when they confirm their booking
         self.confirm_text_id = self.canvas.create_text(370, 950, font=("Bahnschrift Light Condensed", 20), fill="#FFFFFF", anchor="nw")
 
         #Confirm booking button
-        self.button2 = Button(self.canvas, text="Confirm", command=self.confirm_booking, font=("Bahnschrift Light Condensed", 15), bg="#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, state=DISABLED)
-        self.canvas.create_window(300, 1000, anchor="nw", window=self.button2, width=300, height=50)
+        #self.button2 = Button(self.canvas, text="Confirm", command=self.confirm_booking, font=("Bahnschrift Light Condensed", 15), bg="#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, state=DISABLED)
+        #self.canvas.create_window(300, 1000, anchor="nw", window=self.button2, width=300, height=50)
 
         self.canvas.create_text(425, 2000, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
 
+        self.last_scroll_time = time.time()
+        self.scroll_delay = 0.2
+
+        #self.canvas.bind_all("<MouseWheel>", self.debounced_on_mousewheel)
+
         self.canvas.update_idletasks()  # Ensure all pending events are processed
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
+
+    def debounced_on_mousewheel(self, event):
+        current_time = time.time()
+        if current_time - self.last_scroll_time > self.scroll_delay:
+            self.on_mousewheel(event)
+            self.last_scroll_time = current_time
+
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def make_seats(self):
         num_seats_per_row = 18
@@ -603,12 +617,16 @@ class Movie_booking(Toplevel):
         total_button_width = num_seats_per_row * button_width + (num_seats_per_row - 1) * button_spacing
         start_x = (900 - total_button_width) // 2
 
-        self.canvas.create_text(177, 50, text="Choose your seats: ", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+         #Screen visual
+        self.canvas.create_polygon(172, 600, 727, 600, 697, 630, 202, 630, fill="#19294D", outline="#1e2749") 
+        self.canvas.create_text(425, 600, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
 
-        self.canvas.create_rectangle(172, 150, 727, 450, fill="#1e2749", outline="#1e2749")
-        self.canvas.create_rectangle(172, 550, 727, 932, fill="#1e2749", outline="#1e2749")
+        self.canvas.create_rectangle(172, 100, 727, 482, fill="#1e2749", outline="#1e2749")
+        self.canvas.create_rectangle(172, 650, 727, 950, fill="#1e2749", outline="#1e2749")
 
-        seat_rows = [("A", 190), ("B", 230), ("C", 300), ("D", 340), ("E", 380)]
+        self.canvas.create_text(177, 550, text="Choose your seats: ", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+
+        seat_rows = [("A", 665), ("B", 705), ("C", 775), ("D", 815), ("E", 855)]
         for row, y_cord in seat_rows:
             for col in range(num_seats_per_row):
                 x_position = start_x + col * (button_width + button_spacing)
@@ -617,7 +635,7 @@ class Movie_booking(Toplevel):
                 self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command=lambda r=row, s=col + 1: self.clicked_seat(r, s), off_command=lambda r=row, s=col + 1: self.unlcicked_seat(r, s), anchor='n', bd=0, relief=FLAT)
                 self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
                 self.canvas.create_text(177, y_cord, text=row, font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
-                self.canvas.create_text(x_position+5, 425, text=col+1, font=("Bahnschrift Light Condensed", 13), fill="#E5E5E5", anchor="nw", width=100)
+                self.canvas.create_text(x_position+5, 900, text=col+1, font=("Bahnschrift Light Condensed", 13), fill="#E5E5E5", anchor="nw", width=100)
                 self.seat_buttons[seat_label] = self.button1
                 if seat_label in self.booked_tickets:
                      self.button1.set_off_and_disable()
@@ -627,8 +645,8 @@ class Movie_booking(Toplevel):
     def create_ticket_buttons(self):
         background = "#14213D"
  
-        start_2 = 587
-        button_start = 600
+        start_2 = 140
+        button_start = 150
         self.tickets = {
                 "Adult Ticket":[25.00, 0], 
                 "Child Ticket":[19.00, 0], 
@@ -639,7 +657,7 @@ class Movie_booking(Toplevel):
         self.ticket_nums = {}
 
         #self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
-        self.ticket_choice = self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+        self.ticket_choice = self.canvas.create_text(177, 50, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
 
         for i in range(len(self.tickets)):
             lines = start_2 + 58
@@ -672,8 +690,119 @@ class Movie_booking(Toplevel):
 
             start_2 += 95
             button_start += 95
+
+
+    def add_ticket(self, i):
+        key_list = list(self.tickets.keys())
+        value_list  = list(self.tickets.values())
+
+        value_list[i][1] += 1
+        self.canvas.itemconfig(self.ticket_nums[key_list[i]], text=str(value_list[i][1]))
+        self.total_tickets += 1
+
+        print(self.total_tickets, "TICKETS")
+
+        num_of_seats = len(self.seats)
+
+        print(num_of_seats, "SEAT NUM")
+        
+        if num_of_seats < self.total_tickets:
+            for seat_button in self.seat_buttons.values():
+                seat_button.config(state=NORMAL)
+
+        if self.total_tickets > 0:
+            for button_up, button_down in self.buttons.values():
+                    button_down.config(state=NORMAL)
+
+
+        
+
+
+        #print(self.seats)
+       # print(self.total_tickets)
+                    
+
+    def remove_ticket(self, i):
+        key_list = list(self.tickets.keys())
+        value_list  = list(self.tickets.values())
+
+        if value_list[i][1] > 0:
+            value_list[i][1] -= 1
+            self.canvas.itemconfig(self.ticket_nums[key_list[i]], text=str(value_list[i][1]))
+            self.total_tickets -= 1
+
+        if self.total_tickets == 0:
+            for button_up, button_down in self.buttons.values():
+                button_down.config(state=DISABLED)
+
+        num_of_seats =len(self.seats)
+
+        if num_of_seats == self.total_tickets:
+            for seat_button in self.seat_buttons.values():
+                seat_button.config(state=DISABLED)
+
+
+            for selected_seats in self.seats:
+                self.seat_buttons[selected_seats].config(state=NORMAL)
+
+            print('nah id win')
+            for button_up, button_down in self.buttons.values():
+                button_down.config(state=DISABLED)
+
+        print(self.seats, "LIST OF SEATS")
+        print(len(self.seats), "NUM OF SEATS")
+        print(self.total_tickets, "NUM OF TICKETS")
+
+               
+    def clicked_seat(self, row, seat):
+        seat_num = (f"{row}{seat}")
+
+        self.seats.append(seat_num)
+        print(self.seats, "LIST OF SEATS")
+        print(len(self.seats), "NUM OF SEATS")
+        print(self.total_tickets, "NUM OF TICKETS")
+
+        num_of_seats =len(self.seats)
+
+        if num_of_seats == self.total_tickets:
+            for seat_button in self.seat_buttons.values():
+                seat_button.config(state=DISABLED)
+
+
+            for selected_seats in self.seats:
+                self.seat_buttons[selected_seats].config(state=NORMAL)
+
+
+            print('nah id win')
+            for button_up, button_down in self.buttons.values():
+                button_down.config(state=DISABLED)
+
+
+
+        
     
-       
+    def unlcicked_seat(self, row, seat):
+        seat_num = (f"{row}{seat}")
+
+        self.seats.remove(seat_num)
+
+        print(self.seats, "LIST OF SEATS")
+        print(len(self.seats), "NUM OF SEATS")
+        print(self.total_tickets, "NUM OF TICKETS")
+
+        
+        num_of_seats =len(self.seats)
+
+        if num_of_seats < self.total_tickets:
+            for seat_button in self.seat_buttons.values():
+                seat_button.config(state=NORMAL)
+
+            print('nah id win2')
+            for button_up, button_down in self.buttons.values():
+                button_down.config(state=NORMAL)
+
+        
+                    
 
 
     def confirm_booking(self):
@@ -693,54 +822,6 @@ class Movie_booking(Toplevel):
         booked_seats_entry = next((entry for entry in self.movie_info.data[self.index]["booked_seats"] if entry["date"] == self.date.strftime("%Y-%m-%d") and entry["time"] == self.time), {"seats": []})
         self.booked_tickets = booked_seats_entry["seats"]
 
-    def add_ticket(self, i):
-        key_list = list(self.tickets.keys())
-        value_list  = list(self.tickets.values())
-
-        if self.total_tickets < len(self.seats):
-            value_list[i][1] += 1
-            self.canvas.itemconfig(self.ticket_nums[key_list[i]], text=str(value_list[i][1]))
-            self.total_tickets += 1
-
-            if self.total_tickets == len(self.seats):
-                for button_up, button_down in self.buttons.values():
-                    button_up.config(state=DISABLED)
-                    #Leave button down enabled 
-
-            if self.total_tickets > 0:
-                for button_up, button_down in self.buttons.values():
-                    button_down.config(state=NORMAL)
-            
-
-        print(self.seats)
-        print(self.total_tickets)
-                    
-
-    def remove_ticket(self, i):
-        key_list = list(self.tickets.keys())
-        value_list  = list(self.tickets.values())
-
-        if value_list[i][1] > 0:
-            value_list[i][1] -= 1
-            self.canvas.itemconfig(self.ticket_nums[key_list[i]], text=str(value_list[i][1]))
-            self.total_tickets -= 1
-
-        if self.total_tickets < len(self.seats):
-            for button_up, button_down in self.buttons.values():
-                button_up.config(state=NORMAL)
-
-                for seats in self.seats:
-                    if self.seat_buttons[seats].check_on():
-                        self.seat_buttons[seats].enable()
-
-        if self.total_tickets == 0:
-            for button_up, button_down in self.buttons.values():
-                button_down.config(state=DISABLED)
-
-
-
-        print(self.seats)
-        print(self.total_tickets)
 
 
     def book_ticket(self, price):
@@ -773,39 +854,7 @@ class Movie_booking(Toplevel):
             tickets_booked_string += f" {ticket},"
         self.canvas.itemconfig(self.ticket_choice, text=f"Ticket type: {tickets_booked_string.strip()}")
             
-            
-    def clicked_seat(self, row, seat):
-        for seats in self.seats:
-            self.seat_buttons[seats].check_on()
 
-        seat_num = (f"{row}{seat}")
-        print(f"Clicked seat {seat_num}")
-        self.seats.append(seat_num)
-        print(self.seats)
-        for button_up, button_down in self.buttons.values():
-            button_up.config(state=NORMAL)
-            #Leave button_down disabled 
-    
-    def unlcicked_seat(self, row, seat):
-        seat_num = (f"{row}{seat}")
-        print(seat_num)
-        #print(f"Unclicked seat {seat_num}")
-        #self.seats.remove(seat_num)
-        #print(self.seats)
-        num_chosen_seats = len(self.seats)
-
-        if self.total_tickets == num_chosen_seats:
-            for seat in self.seats:
-                self.seat_buttons[seat].set_off_and_disable()
-                self.seat_buttons[seat].check_on()
-                print("Please remove a ticket selection")
-        
-        else:
-            print(f"Unclicked seat {seat_num}")
-            self.seats.remove(seat_num)
-            print(self.seats)
-                        
-    
 
     def handle_configure(self, event):
         self.bring_movie_box_front(event)
