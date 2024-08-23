@@ -1,3 +1,4 @@
+
 from tkinter import*
 from PIL import Image, ImageTk
 from functools import partial
@@ -51,10 +52,8 @@ class ToggleButton(Button):
         self.is_on = not self.is_on
 
 
+
 class Cinema():
-    @staticmethod
-    def on_button_click():
-        print("hello!")
 
     def __init__(self, root, movie_info):
         self.root = root
@@ -364,6 +363,7 @@ class Movie(Toplevel):
          self.canvas.create_text(135, y_position, text=line, font=("Bahnschrift Light Condensed", 13), fill="#ADADAD", anchor="nw", width=width)
          y_position += self.font.metrics("linespace")
 
+
     def create_date_buttons(self):
         today = datetime.now()
 
@@ -429,9 +429,6 @@ class Movie(Toplevel):
                 column += 1
 
 
-
-
-
     def book_time(self, date, time):
             print(f"Booking for {date.strftime('%d %b')} at {time}")
 
@@ -468,6 +465,10 @@ class Movie_booking(Toplevel):
 
         root_x = self.root.winfo_rootx()
         root_y = self.root.winfo_rooty()
+
+        # Debugging prints to trace coordinate values
+        print(f"Root window coordinates: ({root_x}, {root_y})")
+
 
         custom_x = root_x  + 199
         custom_y = root_y  + 1
@@ -528,13 +529,33 @@ class Movie_booking(Toplevel):
 
         self.create_ticket_buttons()
 
+        for button in self.buttons.values():
+              button.config(state=DISABLED)
+
+        
+
         self.canvas.create_text(425, 100, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
+
+        self.confirm_text_id = self.canvas.create_text(370, 950, font=("Bahnschrift Light Condensed", 20), fill="#FFFFFF", anchor="nw")
+
+        self.button2 = Button(self.canvas, text="Confirm", command=self.confirm_booking, font=("Bahnschrift Light Condensed", 15), bg="#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, state=DISABLED)
+        self.canvas.create_window(300, 1000, anchor="nw", window=self.button2, width=300, height=50)
+
 
         self.canvas.create_text(425, 2000, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
 
+
         self.canvas.update_idletasks()  # Ensure all pending events are processed
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
- 
+        
+    def confirm_booking(self):
+        if (len(self.booked_seats)) > 0:
+            self.canvas.itemconfig(self.confirm_text_id, text="Booking Confirmed")
+            print("Confirm booking")
+            self.after(1000, self.destroy)
+        else:
+            self.button2.config(state=DISABLED)
+
 
 
     def create_ticket_buttons(self):
@@ -549,8 +570,8 @@ class Movie_booking(Toplevel):
                 "Senior Ticket":18.50
                     }
         
-        self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
-        self.canvas.create_text(500, 500, font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+        #self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
+        self.ticket_choice = self.canvas.create_text(177, 500, text="Ticket Type:", font=("Bahnschrift Light Condensed", 25), fill="#E5E5E5", anchor="nw")
 
         for i in range(len(tickets)):
             lines = start_2 + 58
@@ -573,26 +594,64 @@ class Movie_booking(Toplevel):
 
 
     def book_ticket(self, price):
-        print(len(self.seats))
-        print(len(self.booked_seats))
+
+        print(self.seats)
+        print(self.booked_seats)
         print("done")
-        if len(self.seats) <= len(self.booked_seats):
+
+        if len(self.seats) == len(self.booked_seats):
             for button in self.buttons.values():
               button.config(state=DISABLED)
+
         else:
             self.booked_seats.append(price)
             print(self.booked_seats)
             print("done1")
+
+            if len(self.seats) == len(self.booked_seats):
+                for button in self.buttons.values():
+                    button.config(state=DISABLED)
+            
+                self.button2.config(state=NORMAL)
+            self.update_ticket_choice()
+
+    def update_ticket_choice(self):
+        #string for booked tickets 
+        tickets_booked_string = ""
+
+        for ticket in self.booked_seats:
+            tickets_booked_string += f" {ticket},"
+        self.canvas.itemconfig(self.ticket_choice, text=f"Ticket type: {tickets_booked_string.strip()}")
+            
             
     def clicked_seat(self, seat):
         print(f"Clicked seat {seat}")
         self.seats.append(seat)
         print(self.seats)
+        for button in self.buttons.values():
+            button.config(state=NORMAL)
     
     def unlcicked_seat(self, seat):
         print(f"Unclicked seat {seat}")
         self.seats.remove(seat)
         print(self.seats)
+        x = len(self.seats)
+        if len(self.booked_seats) > x >= 0:
+            for button in self.buttons.values():
+              button.config(state=DISABLED)
+            self.booked_seats.pop()
+            self.update_ticket_choice()
+
+            print(self.booked_seats)
+        elif x > 0:
+            for button in self.buttons.values():
+              button.config(state=NORMAL)
+              self.button2.config(state=DISABLED)
+        else:
+            for button in self.buttons.values():
+              button.config(state=DISABLED)
+            self.button2.config(state=DISABLED)
+    
 
     def handle_configure(self, event):
         self.bring_movie_box_front(event)
@@ -637,13 +696,12 @@ if __name__ == "__main__":
     # Set the geometry to the desired size and centered position
     root.geometry(f"{desired_width}x{desired_height}+{x}+{y}")
 
-    root.update_idletasks()  # Ensure the geometry has been applied before centering
-
+    root.update_idletasks()  
+    
     root.rowconfigure(0, weight=1)
     root.columnconfigure(1, weight=1)
 
     movie_info = Movie_info_storage()
 
-    # Initialize your Cinema application
     Cinema(root, movie_info)
     root.mainloop()
