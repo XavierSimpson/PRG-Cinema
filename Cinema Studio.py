@@ -97,6 +97,9 @@ class ToggleButton(Button):
         self.is_on = True
         self.config(bg=self.on_colour, state=DISABLED)
 
+    def set_off(self):
+        self.is_on = False
+        self.configure(bg=self.off_colour)
 
 #My main window class
 class Cinema():
@@ -232,6 +235,8 @@ class Movie_info(Toplevel):
         self.is_minimized = False
         self.is_restoring = False
         self.last_state = self.root.wm_state()
+        self.currently_toggled_button = None
+        self.buttons = {}
 
         #Set up the bindings
 
@@ -407,13 +412,26 @@ class Movie_info(Toplevel):
         for i in range(7):
             date = today + timedelta(days=i)
             date_str = date.strftime("%d %b")
-            button = Button(
-                self.scrollable_frame, text=date_str, font=("Bahnschrift Light Condensed", 15),
-                bg="#1e2749", fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, width=12,
-                command=lambda d=date: self.show_times(d),
+            button = ToggleButton(
+                self.scrollable_frame, on_colour="#e09f3e", off_colour="#1e2749", text=date_str, font=("Bahnschrift Light Condensed", 15),
+                fg="#FFFFFF", anchor='n', bd=0, relief=FLAT, width=12,
+                on_command=lambda d=date, i=i: self.toggle_date_button(d, i), off_command=self.destroy_widget,
                 takefocus=False)
-            
             button.grid(row=0, column=i, padx=10, pady=10, sticky="ns")
+            self.buttons[i]= button
+
+
+    def toggle_date_button(self, date, index):
+        button = self.buttons[index]
+        if self.currently_toggled_button and self.currently_toggled_button != button:
+            self.currently_toggled_button.set_off()
+        self.currently_toggled_button = button
+        self.show_times(date)
+
+    def destroy_widget(self):
+        for widget in self.time_frame.winfo_children():
+            widget.destroy()
+
 
     def show_times(self, date):
 
@@ -750,12 +768,12 @@ if __name__ == "__main__":
 
     # Adjust y position to account for the taskbar height
     taskbar_height = 40  # Typical height of the taskbar
-    y = y - (taskbar_height)
+    y = y - (taskbar_height // 2)
 
     # Set the geometry to the desired size and centered position
     root.geometry(f"{desired_width}x{desired_height}+{x}+{y}")
 
-    root.update_idletasks() 
+    root.update_idletasks()  
 
     root.rowconfigure(0, weight=1)
     root.columnconfigure(1, weight=1)
