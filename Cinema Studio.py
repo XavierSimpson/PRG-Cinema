@@ -1,4 +1,3 @@
-
 from tkinter import*
 from PIL import Image, ImageTk
 from functools import partial
@@ -8,6 +7,7 @@ import json
 import os
 
 file_name = 'data.json'
+#booked_seats = 'seats.json'
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,12 +18,34 @@ file_path = os.path.join(script_dir, file_name)
 class Movie_info_storage:
     def __init__(self):
         self.data = self.load_data(file_path)
-
+    
     def load_data(self, file_path):
         with open(file_path, 'r') as file:
             data = json.load(file)
             return data.get('movies', [])
-    
+
+    #This allows for seats to be saved permanently, this does it by opening the json file and adding to it
+    def save_booked_seats(self, file_path, movie_index, date, time, new_seats):
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = {"movies": []}
+
+
+        movie = data["movies"][movie_index]
+        booked_seats_entry = next((entry for entry in movie["booked_seats"] if entry["date"] == date and entry["time"] == time), None)
+        if booked_seats_entry:
+            existing_seats = set(booked_seats_entry["seats"])
+            new_seats_set = set(new_seats)
+            booked_seats_entry["seats"] = list(existing_seats.union(new_seats_set))
+        else:
+            movie["booked_seats"].append({"date": date, "time": time, "seats": new_seats})
+
+        #Close the file and save it
+        with open(file_path, 'w') as file:
+            json.dump(data, file, indent=1)
+        
 class ToggleButton(Button):
     def __init__(self, parent, on_colour, off_colour, on_command=None, off_command=None, *args, **kwargs):
         self.is_on = False
@@ -51,10 +73,12 @@ class ToggleButton(Button):
                 self.on_command()
         self.is_on = not self.is_on
 
+    def set_off_and_disable(self):
+        self.is_on = True
+        self.config(bg=self.on_colour, state=DISABLED)
 
 
 class Cinema():
-
     def __init__(self, root, movie_info):
         self.root = root
 
@@ -363,7 +387,6 @@ class Movie(Toplevel):
          self.canvas.create_text(135, y_position, text=line, font=("Bahnschrift Light Condensed", 13), fill="#ADADAD", anchor="nw", width=width)
          y_position += self.font.metrics("linespace")
 
-
     def create_date_buttons(self):
         today = datetime.now()
 
@@ -430,8 +453,6 @@ class Movie(Toplevel):
 
 
     def book_time(self, date, time):
-            print(f"Booking for {date.strftime('%d %b')} at {time}")
-
             Movie_booking(self.root, self.index, self.movie_info, date, time)
 
     def on_mousewheel(self, event):
@@ -441,15 +462,29 @@ class Movie_booking(Toplevel):
     def __init__(self, partner, index, movie_info, date, time,*args, **kwargs):
         super().__init__(root, *args, **kwargs)
 
+        # Lists / Dictionaries 
         self.seats = []
         self.booked_seats = []
         self.buttons = {}
-    
+        self.booked_tickets = []
+        self.seat_buttons = {}
+
+
         self.root = root
         self.partner = partner
         self.index = index
         self.movie_info = movie_info 
+        self.time = time
+        self.date = date
         self.root.bind("<Configure>", self.handle_configure)   
+
+        date_str = self.date.strftime("%Y-%m-%d")
+
+        booked_seats_entry = next((entry for entry in self.movie_info.data[self.index]["booked_seats"] if entry["date"] == date_str and entry["time"] == self.time), {"seats": []})
+        self.booked_tickets = booked_seats_entry["seats"]
+        print("hey111")
+        print(self.booked_tickets)
+
 
         background = "#14213D"
 
@@ -465,10 +500,6 @@ class Movie_booking(Toplevel):
 
         root_x = self.root.winfo_rootx()
         root_y = self.root.winfo_rooty()
-
-        # Debugging prints to trace coordinate values
-        print(f"Root window coordinates: ({root_x}, {root_y})")
-
 
         custom_x = root_x  + 199
         custom_y = root_y  + 1
@@ -501,18 +532,30 @@ class Movie_booking(Toplevel):
         self.canvas.create_rectangle(172, 150, 727, 450, fill="#1e2749", outline="#1e2749")
         self.canvas.create_rectangle(172, 550, 727, 932, fill="#1e2749", outline="#1e2749")
 
-        for row in range(3):
-            for col in range(num_seats_per_row):
-                x_position = start_x + col * (button_width + button_spacing)
-                y_position = 300 + row * (button_height + button_spacing)
-                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = lambda s=col: self.clicked_seat(s), off_command= lambda s=col: self.unlcicked_seat(s), anchor='n', bd=0, relief=FLAT)
-                self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
+        for i in self.booked_tickets:
+            print(i)
 
-        for row in range(2):
+        seat_row_2 = ["C", "D", "E"]
+        for i, row in enumerate(seat_row_2):
             for col in range(num_seats_per_row):
                 x_position = start_x + col * (button_width + button_spacing)
-                y_position = 190 + row * (button_height + button_spacing)
-                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = lambda s=col: self.clicked_seat(s), off_command= lambda s=col: self.unlcicked_seat(s), anchor='n', bd=0, relief=FLAT)
+                y_position = 300 + i * (button_height + button_spacing)
+                seat_label = f"{row}{col}"
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command=lambda r=row, s=col: self.clicked_seat(r, s), off_command=lambda r=row, s=col: self.unlcicked_seat(r, s), anchor='n', bd=0, relief=FLAT)
+                self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
+                self.seat_buttons[seat_label] = self.button1
+                if seat_label in self.booked_tickets:
+                     self.button1.set_off_and_disable()
+                     print(f"{seat_label} DISABLED") 
+        
+
+
+        seat_row_1 = ["A", "B"]
+        for i, row in enumerate(seat_row_1):
+            for col in range(num_seats_per_row):
+                x_position = start_x + col * (button_width + button_spacing)
+                y_position = 190 + i * (button_height + button_spacing)
+                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command = lambda r=row, s=col: self.clicked_seat(r, s), off_command= lambda r=row, s=col: self.unlcicked_seat(r, s), anchor='n', bd=0, relief=FLAT)
                 self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
 
         self.canvas.create_text(177, 187, text="A", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
@@ -549,14 +592,21 @@ class Movie_booking(Toplevel):
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         
     def confirm_booking(self):
-        if (len(self.booked_seats)) > 0:
+        if len(self.booked_seats) > 0:
             self.canvas.itemconfig(self.confirm_text_id, text="Booking Confirmed")
             print("Confirm booking")
+            self.movie_info.save_booked_seats(file_path, self.index, self.date.strftime("%Y-%m-%d"), self.time, self.seats)
+
+            self.movie_info.data = self.movie_info.load_data(file_path)
+
             self.after(1000, self.destroy)
         else:
             self.button2.config(state=DISABLED)
 
 
+    def update_seat_buttons(self):
+        booked_seats_entry = next((entry for entry in self.movie_info.data[self.index]["booked_seats"] if entry["date"] == self.date.strftime("%Y-%m-%d") and entry["time"] == self.time), {"seats": []})
+        self.booked_tickets = booked_seats_entry["seats"]
 
     def create_ticket_buttons(self):
         background = "#14213D"
@@ -624,21 +674,24 @@ class Movie_booking(Toplevel):
         self.canvas.itemconfig(self.ticket_choice, text=f"Ticket type: {tickets_booked_string.strip()}")
             
             
-    def clicked_seat(self, seat):
-        print(f"Clicked seat {seat}")
-        self.seats.append(seat)
+    def clicked_seat(self, row, seat):
+        seat_num = (f"{row}{seat}")
+        print(f"Clicked seat {seat_num}")
+        self.seats.append(seat_num)
         print(self.seats)
         for button in self.buttons.values():
             button.config(state=NORMAL)
     
-    def unlcicked_seat(self, seat):
-        print(f"Unclicked seat {seat}")
-        self.seats.remove(seat)
+    def unlcicked_seat(self, row, seat):
+        seat_num = (f"{row}{seat}")
+        print(f"Unclicked seat {seat_num}")
+        self.seats.remove(seat_num)
         print(self.seats)
         x = len(self.seats)
         if len(self.booked_seats) > x >= 0:
             for button in self.buttons.values():
               button.config(state=DISABLED)
+            self.button2.config(state=DISABLED)
             self.booked_seats.pop()
             self.update_ticket_choice()
 
@@ -646,7 +699,7 @@ class Movie_booking(Toplevel):
         elif x > 0:
             for button in self.buttons.values():
               button.config(state=NORMAL)
-              self.button2.config(state=DISABLED)
+            self.button2.config(state=DISABLED)
         else:
             for button in self.buttons.values():
               button.config(state=DISABLED)
@@ -662,12 +715,10 @@ class Movie_booking(Toplevel):
         self.root.attributes("-topmost", False)
         self.after(10, lambda: self.attributes("-topmost", False)) 
 
+
         
 
             
-
-
-
 
         
 
@@ -690,14 +741,13 @@ if __name__ == "__main__":
     y = (screen_height - desired_height) // 2
 
     # Adjust y position to account for the taskbar height
-    taskbar_height = 40  # Typical height of the taskbar
-    y = y - (taskbar_height // 2)
+    taskbar_height = 40 
+    y = y - (taskbar_height)
 
-    # Set the geometry to the desired size and centered position
     root.geometry(f"{desired_width}x{desired_height}+{x}+{y}")
 
-    root.update_idletasks()  
-    
+    root.update_idletasks()
+
     root.rowconfigure(0, weight=1)
     root.columnconfigure(1, weight=1)
 

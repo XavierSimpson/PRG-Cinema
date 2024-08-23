@@ -1,0 +1,241 @@
+{
+ "movies": [
+  {
+   "title": "King Kong",
+   "rating": "R13",
+   "duration": "115min",
+   "release_date": "6 June 2024",
+   "warnings": "Bloody violence, sexual references & offensive language",
+   "summary": "Join the epic adventure as King Kong, a colossal ape, battles dangers on Skull Island and the streets of New York City. A thrilling tale of courage and survival.",
+   "image_poster": "C:\\Users\\xavie\\Downloads\\image-from-rawpixel-id-9975454-original.jpg",
+   "image_banner": "C:\\Users\\xavie\\OneDrive\\Documents\\PRG ASSESMENT\\King kong banner.jpg",
+   "booked_seats": [
+    {
+     "date": "2024-08-02",
+     "time": "7:00 PM",
+     "seats": [
+      "D7"
+     ]
+    },
+    {
+     "date": "2024-08-03",
+     "time": "5:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-08-01",
+     "time": "7:00 PM",
+     "seats": [
+      "C9"
+     ]
+    },
+    {
+     "date": "2024-08-06",
+     "time": "1:00 PM",
+     "seats": [
+      "C10",
+      "C8",
+      "C9"
+     ]
+    },
+    {
+     "date": "2024-08-01",
+     "time": "3:00 PM",
+     "seats": [
+      "C8"
+     ]
+    },
+    {
+     "date": "2024-08-03",
+     "time": "11:00 AM",
+     "seats": [
+      "C7",
+      "C8"
+     ]
+    },
+    {
+     "date": "2024-08-09",
+     "time": "1:00 PM",
+     "seats": [
+      "C8",
+      "C9"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "The Day the Earth Stood Still",
+   "rating": "R13",
+   "duration": "130min",
+   "release_date": "15 June 2024",
+   "warnings": "Bloody violence & offensive language",
+   "summary": "Experience the classic sci-fi as an alien visitor arrives with a powerful message for humanity. A thought-provoking journey of first contact and global tension.",
+   "image_poster": "C:\\Users\\xavie\\Downloads\\image-from-rawpixel-id-9976112-original.jpeg",
+   "image_banner": "C:\\Users\\xavie\\Downloads\\The.Day.The.Earth.Stood.Still.(1951)-poster.(16x9).jpg",
+   "booked_seats": [
+    {
+     "date": "2024-07-22",
+     "time": "7:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-07-23",
+     "time": "5:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-08-15",
+     "time": "1:00 PM",
+     "seats": [
+      "B8",
+      "B9"
+     ]
+    },
+    {
+     "date": "2024-08-20",
+     "time": "7:00 AM",
+     "seats": [
+      "C8",
+      "C9"
+     ]
+    },
+    {
+     "date": "2024-08-19",
+     "time": "7:00 PM",
+     "seats": [
+      "C8"
+     ]
+    },
+    {
+     "date": "2024-08-22",
+     "time": "11:00 AM",
+     "seats": [
+      "C9"
+     ]
+    },
+    {
+     "date": "2024-08-23",
+     "time": "7:00 AM",
+     "seats": [
+      "C9",
+      "C10"
+     ]
+    },
+    {
+     "date": "2024-08-23",
+     "time": "11:00 AM",
+     "seats": [
+      "C9",
+      "C10"
+     ]
+    },
+    {
+     "date": "2024-08-23",
+     "time": "9:00 PM",
+     "seats": [
+      "D9",
+      "D10",
+      "D8"
+     ]
+    },
+    {
+     "date": "2024-08-24",
+     "time": "11:00 AM",
+     "seats": [
+      "C9",
+      "C10"
+     ]
+    },
+    {
+     "date": "2024-08-25",
+     "time": "11:00 AM",
+     "seats": [
+      "C8",
+      "C9"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "All Quiet on the Western Front",
+   "rating": "R18",
+   "duration": "140min",
+   "release_date": "24 June 2024",
+   "warnings": "Bloody violence, gore, sexual refrences, war & offensive language",
+   "summary": "Dive into the harrowing World War I drama that follows German soldiers' struggles on the brutal Western Front. A poignant exploration of the horrors of war.",
+   "image_poster": "C:\\Users\\xavie\\Downloads\\image-from-rawpixel-id-9976560-original.jpg",
+   "image_banner": "C:\\Users\\xavie\\Downloads\\All-Quiet-on-the-Wester-Front-Featured.webp",
+   "booked_seats": [
+    {
+     "date": "2024-07-22",
+     "time": "7:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-07-23",
+     "time": "5:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-08-15",
+     "time": "11:00 AM",
+     "seats": [
+      "C9",
+      "C10"
+     ]
+    },
+    {
+     "date": "2024-08-21",
+     "time": "7:00 AM",
+     "seats": [
+      "C7",
+      "C8"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Dracula's Daughter",
+   "rating": "R18",
+   "duration": "104min",
+   "release_date": "3 June 2024",
+   "warnings": "Bloody violence, gore & offensive language",
+   "summary": "Enter the chilling world of Dracula's lineage as his daughter navigates life and immortality in a modern era. A haunting tale of darkness and desire.",
+   "image_poster": "C:\\Users\\xavie\\Downloads\\image-from-rawpixel-id-9976063-original.jpg",
+   "image_banner": "C:\\Users\\xavie\\Downloads\\draculas-daughter-featured.webp",
+   "booked_seats": [
+    {
+     "date": "2024-07-22",
+     "time": "7:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    },
+    {
+     "date": "2024-07-23",
+     "time": "5:00 PM",
+     "seats": [
+      "D10",
+      "E4"
+     ]
+    }
+   ]
+  }
+ ]
+}
