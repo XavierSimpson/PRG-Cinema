@@ -518,6 +518,8 @@ class Movie_booking(Toplevel):
         self.buttons = {}
         self.booked_tickets = []
         self.seat_buttons = {}
+        self.total_price = []
+        self.chosen_tickets = []
 
         #Instance varibles 
         self.root = root
@@ -575,20 +577,24 @@ class Movie_booking(Toplevel):
         #GUI functions to set up seat GUI and ticket booking GUI
         self.make_seats()
         self.create_ticket_buttons()
-        self.canvas.update_idletasks() 
+
+        for seat_button in self.seat_buttons.values():
+                self.canvas.tag_unbind(seat_button, "<Button-1>") 
 
         for button_up, button_down in self.buttons.values():
                 button_down.config(state=DISABLED)
 
-        for seat_button in self.seat_buttons.values():
-                seat_button.config(state=DISABLED)
-
         #This text changes when they confirm their booking
         self.confirm_text_id = self.canvas.create_text(370, 950, font=("Bahnschrift Light Condensed", 20), fill="#FFFFFF", anchor="nw")
 
+
+        self.canvas.create_rectangle(172, 980, 727, 1100, fill="#19294D", outline="#1e2749") 
+        self.price_text_id = self.canvas.create_text(177, 1000, text="Total Price: ", font=("Bahnschrift Light Condensed", 20), fill="#FFFFFF", anchor="nw")
+        self.seats_text_id = self.canvas.create_text(177, 1050, text="Seats: ", font=("Bahnschrift Light Condensed", 20), fill="#FFFFFF", anchor="nw")
+
         #Confirm booking button
-        #self.button2 = Button(self.canvas, text="Confirm", command=self.confirm_booking, font=("Bahnschrift Light Condensed", 15), bg="#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, state=DISABLED)
-        #self.canvas.create_window(300, 1000, anchor="nw", window=self.button2, width=300, height=50)
+        self.button2 = Button(self.canvas, text="Confirm", command=self.confirm_booking, font=("Bahnschrift Light Condensed", 15), bg="#e09f3e", fg="#FFFFFF", bd=0, relief=FLAT, state=DISABLED)
+        self.canvas.create_window(300, 1150, anchor="nw", window=self.button2, width=300, height=50)
 
         self.canvas.create_text(425, 2000, text="screen", font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
 
@@ -629,17 +635,21 @@ class Movie_booking(Toplevel):
         seat_rows = [("A", 665), ("B", 705), ("C", 775), ("D", 815), ("E", 855)]
         for row, y_cord in seat_rows:
             for col in range(num_seats_per_row):
+
                 x_position = start_x + col * (button_width + button_spacing)
                 y_position = y_cord +5 #Adjustment I made
                 seat_label = f"{row}{col + 1}"
-                self.button1 = ToggleButton(self.canvas, on_colour="#495057", off_colour="#e09f3e", on_command=lambda r=row, s=col + 1: self.clicked_seat(r, s), off_command=lambda r=row, s=col + 1: self.unlcicked_seat(r, s), anchor='n', bd=0, relief=FLAT)
-                self.canvas.create_window(x_position, y_position, anchor="nw", window=self.button1, width=button_width, height=20)
+                
+                seat_rect = self.canvas.create_rectangle(x_position, y_position, x_position + button_width, y_position + 20, fill="#e09f3e", outline="")
+                self.canvas.tag_bind(seat_rect, "<Button-1>", lambda event, r=row, c=col + 1: self.clicked_seat(r, c))
+
+                self.seat_buttons[seat_label] = seat_rect
+                if seat_label in self.booked_tickets:
+                    self.canvas.itemconfig(seat_rect, fill="#495057")  # Disabled color
+                    self.canvas.tag_unbind(seat_rect, "<Button-1>") 
+                
                 self.canvas.create_text(177, y_cord, text=row, font=("Bahnschrift Light Condensed", 15), fill="#E5E5E5", anchor="nw", width=100)
                 self.canvas.create_text(x_position+5, 900, text=col+1, font=("Bahnschrift Light Condensed", 13), fill="#E5E5E5", anchor="nw", width=100)
-                self.seat_buttons[seat_label] = self.button1
-                if seat_label in self.booked_tickets:
-                     self.button1.set_off_and_disable()
-                     print(f"{seat_label} DISABLED") 
         
 
     def create_ticket_buttons(self):
@@ -695,6 +705,11 @@ class Movie_booking(Toplevel):
     def add_ticket(self, i):
         key_list = list(self.tickets.keys())
         value_list  = list(self.tickets.values())
+        self.total_price.append(value_list[i][0])
+        total_price = sum(self.total_price)
+        print(total_price, "TOTAL PRICE")
+
+        self.chosen_tickets.append(self.buttons[key_list[i]][1])
 
         value_list[i][1] += 1
         self.canvas.itemconfig(self.ticket_nums[key_list[i]], text=str(value_list[i][1]))
@@ -707,12 +722,20 @@ class Movie_booking(Toplevel):
         print(num_of_seats, "SEAT NUM")
         
         if num_of_seats < self.total_tickets:
-            for seat_button in self.seat_buttons.values():
-                seat_button.config(state=NORMAL)
+            for seat_label, seat_button in self.seat_buttons.items():
+                self.canvas.tag_bind(seat_button,  "<Button-1>", lambda event, r=seat_label[0], c=int(seat_label[1:]): self.clicked_seat(r, c))
+
+                if seat_label in self.booked_tickets:
+                    self.canvas.itemconfig(seat_button, fill="#495057")  # Disabled color
+                    self.canvas.tag_unbind(seat_button, "<Button-1>") 
+
 
         if self.total_tickets > 0:
-            for button_up, button_down in self.buttons.values():
-                    button_down.config(state=NORMAL)
+            for ticket in self.chosen_tickets:
+                ticket.config(state=NORMAL)
+        
+        self.canvas.itemconfig(self.price_text_id, text=f"Total Price: ${total_price:.2f}")
+
 
 
         
@@ -723,8 +746,14 @@ class Movie_booking(Toplevel):
                     
 
     def remove_ticket(self, i):
+
+        
+
         key_list = list(self.tickets.keys())
         value_list  = list(self.tickets.values())
+        self.total_price.remove(value_list[i][0])
+        total_price = sum(self.total_price)
+        print(total_price, "TOTAL PRICE")
 
         if value_list[i][1] > 0:
             value_list[i][1] -= 1
@@ -739,7 +768,7 @@ class Movie_booking(Toplevel):
 
         if num_of_seats == self.total_tickets:
             for seat_button in self.seat_buttons.values():
-                seat_button.config(state=DISABLED)
+                self.canvas.tag_unbind(seat_button, "<Button-1>") 
 
 
             for selected_seats in self.seats:
@@ -753,11 +782,30 @@ class Movie_booking(Toplevel):
         print(len(self.seats), "NUM OF SEATS")
         print(self.total_tickets, "NUM OF TICKETS")
 
+
+        self.canvas.itemconfig(self.price_text_id, text=f"Total Price: ${total_price:.2f}")
+
                
     def clicked_seat(self, row, seat):
+        total_price = sum(self.total_price)
+        print(total_price, "TOTAL PRICE")
+
         seat_num = (f"{row}{seat}")
 
+
+        if seat_num in self.seats:
+            return 
+            
+
         self.seats.append(seat_num)
+
+        self.canvas.itemconfig(self.seat_buttons[seat_num], fill="#495057")
+
+        seats_string = ", ".join(self.seats)
+        self.canvas.itemconfig(self.seats_text_id, text=f"Seats: {seats_string}")
+                
+
+
         print(self.seats, "LIST OF SEATS")
         print(len(self.seats), "NUM OF SEATS")
         print(self.total_tickets, "NUM OF TICKETS")
@@ -766,11 +814,14 @@ class Movie_booking(Toplevel):
 
         if num_of_seats == self.total_tickets:
             for seat_button in self.seat_buttons.values():
-                seat_button.config(state=DISABLED)
+                self.canvas.tag_unbind(seat_button, "<Button-1>") 
 
 
-            for selected_seats in self.seats:
-                self.seat_buttons[selected_seats].config(state=NORMAL)
+            for selected_seats in self.seats: 
+                 print(selected_seats, "SELECTED SEATS") # Disabled color
+                 self.canvas.tag_bind(self.seat_buttons[selected_seats],  "<Button-1>", lambda event, r=selected_seats[0], c=int(selected_seats[1:]): self.unlcicked_seat(r, c))
+
+            self.button2.config(state=NORMAL)
 
 
             print('nah id win')
@@ -782,9 +833,16 @@ class Movie_booking(Toplevel):
         
     
     def unlcicked_seat(self, row, seat):
+        key_list = list(self.tickets.keys())
+
         seat_num = (f"{row}{seat}")
 
         self.seats.remove(seat_num)
+
+        self.canvas.itemconfig(self.seat_buttons[seat_num], fill="#e09f3e")
+
+        seats_string = ", ".join(self.seats)
+        self.canvas.itemconfig(self.seats_text_id, text=f"Seats: {seats_string}")
 
         print(self.seats, "LIST OF SEATS")
         print(len(self.seats), "NUM OF SEATS")
@@ -794,19 +852,26 @@ class Movie_booking(Toplevel):
         num_of_seats =len(self.seats)
 
         if num_of_seats < self.total_tickets:
-            for seat_button in self.seat_buttons.values():
-                seat_button.config(state=NORMAL)
+            for seat_label, seat_button in self.seat_buttons.items():
+                if seat_label not in self.seats:
+                    self.canvas.tag_bind(seat_button,  "<Button-1>", lambda event, r=seat_label[0], c=int(seat_label[1:]): self.clicked_seat(r, c))
+
+                    if seat_label in self.booked_tickets:
+                        self.canvas.itemconfig(seat_button, fill="#495057")  # Disabled color
+                        self.canvas.tag_unbind(seat_button, "<Button-1>") 
 
             print('nah id win2')
-            for button_up, button_down in self.buttons.values():
-                button_down.config(state=NORMAL)
+            for button_up in self.chosen_tickets:
+                button_up.config(state=NORMAL)
 
         
                     
 
 
     def confirm_booking(self):
-        if len(self.booked_seats) > 0:
+        num_of_seats =len(self.seats)
+
+        if num_of_seats == self.total_tickets:
             self.canvas.itemconfig(self.confirm_text_id, text="Booking Confirmed")
             print("Confirm booking")
             self.movie_info.save_booked_seats(file_path, self.index, self.date.strftime("%Y-%m-%d"), self.time, self.seats)
